@@ -1,38 +1,142 @@
-.App {
-  text-align: center;
+/* --- General Body & Card Styling --- */
+body {
+  background-color: #f8f9fa;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border: 1px solid #e9ecef;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* --- Profile Picture Avatar Styling --- */
+.profile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(0, 0, 0, 0.1); /* Darker border for light navbar */
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+/* --- Courses Page Styling --- */
+.courses-page-background {
+  background-color: #f4f7f6;
+  padding-bottom: 3rem;
+}
+.page-header h1 { color: #343a40; }
+.course-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+.course-card-img { height: 180px; object-fit: cover; }
+.course-card-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 72px;
 }
 
-.App-link {
-  color: #61dafb;
+/* --- Homepage Styling --- */
+.hero-section {
+  background: linear-gradient(45deg, #26a69a, #2e7d32); 
+  padding: 8rem 0;
+  color: white; 
+}
+.hero-section .btn-light:hover {
+  background-color: #f8f9fa;
+  color: #2e7d32;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease-in-out;
+}
+.content-section-wrapper {
+    background-color: #f0f7f7;
+}
+.cta-section { 
+    background-color: #e3f2fd;
+}
+.about-section {
+  background-color: #ffffff;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* --- Bright Navbar & Sidebar Styling --- */
+.app-navbar {
+  background-color: #E0F2F1 !important; 
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #B2DFDB;
 }
+.app-navbar .navbar-brand {
+  font-size: 1.75rem !important;
+  font-weight: bold;
+  color: #004D40 !important;
+}
+.sidebar-toggle-btn {
+  background: none !important;
+  border: none !important;
+  color: #004D40 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+.sidebar-toggle-btn:hover {
+  color: #00796B !important;
+}
+/* ✨ --- Rule to make all navbar buttons larger --- ✨ */
+.app-navbar .btn {
+    padding: 0.5rem 1rem !important;
+    font-size: 1rem !important;
+}
+.dashboard-btn {
+  background-color: #00796B !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  border: none !important;
+}
+.dashboard-btn:hover {
+    background-color: #004D40 !important;
+}
+
+.app-sidebar.offcanvas {
+    width: 280px !important;
+    background-color: #E0F2F1;
+    color: #004D40;
+}
+.app-sidebar .offcanvas-header {
+  border-bottom: 1px solid #B2DFDB;
+}
+.app-sidebar .btn-close {}
+.app-sidebar .sidebar-link {
+  font-size: 1.2rem !important;
+  font-weight: 500;
+  padding: 1rem 1.5rem;
+  color: #004D40;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  margin-bottom: 0.25rem;
+}
+.app-sidebar .sidebar-link:hover {
+  background-color: #B2DFDB;
+  color: #004D40;
+}
+.app-sidebar .sidebar-divider {
+    border-top: 1px solid #B2DFDB;
+}
+
+/* --- ✨ Designer Footer Styling (REVISED) ✨ --- */
+footer#footer-contact.bg-dark {
+  /* Restored the vibrant green gradient */
+  background: linear-gradient(45deg, #26a69a, #2e7d32) !important;
+}
+footer#footer-contact h5, footer#footer-contact h6 {
+    color: #ffffff; /* Changed heading color to white for better contrast */
+}
+footer#footer-contact .nav-link:hover {
+    color: #ffffff !important;
+    text-decoration: underline;
+}
+footer#footer-contact .copyright-text {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+

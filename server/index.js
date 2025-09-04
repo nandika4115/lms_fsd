@@ -2,7 +2,7 @@ const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken"); // Import JWT library
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
@@ -14,7 +14,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// In a real application, this secret should be stored in an environment variable (.env file)
 const JWT_SECRET = "your_super_secret_key_that_is_long_and_random";
 
 // --- MySQL Connection ---
@@ -35,79 +34,92 @@ db.connect((err) => {
 
 // --- Authentication Middleware ---
 const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Format: "Bearer TOKEN"
-
-  if (token == null) {
-    return res.sendStatus(401); // Unauthorized
-  }
-
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.sendStatus(403); // Forbidden (token is no longer valid)
-    }
-    req.user = user; // Add the decoded user payload to the request object
-    next();
-  });
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (token == null) return res.sendStatus(401);
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.sendStatus(403);
+        req.user = user;
+        next();
+    });
 };
-
 
 // --- AUTHENTICATION ROUTES ---
 
-// ---------------- REGISTER ----------------
+// ---------------------------------------------------
+// ✨ REGISTER (Upgraded with all new profile fields) ✨
+// ---------------------------------------------------
 app.post("/api/auth/register", async (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ message: "Username and password required" });
+  const { 
+    firstName, lastName, username, email, password, role, 
+    phoneNumber, age, currentActivity, activityPlace 
+  } = req.body;
+
+  // Validate essential input
+  if (!firstName || !lastName || !username || !email || !password || !role) {
+    return res.status(400).json({ message: "Please fill all required fields." });
   }
+
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    db.query(
-      "INSERT INTO users (username, password) VALUES (?, ?)",
-      [username, hashedPassword],
-      (err, result) => {
-        if (err) {
-          if (err.code === "ER_DUP_ENTRY") {
-            return res.status(409).json({ message: "Username already exists" });
-          }
-          return res.status(500).json({ message: "Error registering user" });
+    const sql = `
+      INSERT INTO users (first_name, last_name, username, email, password, role, phone_number, age, current_activity, activity_place) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    const values = [
+      firstName, lastName, username, email, hashedPassword, role, 
+      phoneNumber, age, currentActivity, activityPlace
+    ];
+
+    db.query(sql, values, (err, result) => {
+      if (err) {
+        if (err.code === "ER_DUP_ENTRY") {
+          return res.status(409).json({ message: "Username or Email already exists." });
         }
-        res.status(201).json({ message: "✅ User registered successfully" });
+        console.error("❌ Register error:", err);
+        return res.status(500).json({ message: "Error registering user" });
       }
-    );
-  } catch (error) {
-    return res.status(500).json({ message: "Error processing password" });
-  }
-});
-
-// ---------------- LOGIN (Updated to return JWT) ----------------
-app.post("/api/auth/login", (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ message: "Username and password required" });
-  }
-  db.query("SELECT * FROM users WHERE username = ?", [username], (err, results) => {
-    if (err) return res.status(500).json({ message: "Error logging in" });
-    if (results.length === 0) {
-      return res.status(401).json({ message: "Invalid username or password" });
-    }
-    const user = results[0];
-    bcrypt.compare(password, user.password, (err, isMatch) => {
-      if (err) return res.status(500).json({ message: "Error logging in" });
-      if (!isMatch) {
-        return res.status(401).json({ message: "Invalid username or password" });
-      }
-      // ✨ Create JWT Token on successful login
-      const tokenPayload = { id: user.id, username: user.username, role: user.role };
-      const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1h' });
-      res.json({ message: "✅ Login successful", token });
+      res.status(201).json({ message: "✅ User registered successfully" });
     });
-  });
+  } catch (error) {
+    console.error("❌ Hashing error:", error);
+    return res.status(500).json({ message: "Error processing request" });
+  }
 });
 
-// --- PUBLIC COURSE ROUTES ---
+// ---------------------------------------------------
+// ✨ LOGIN (Upgraded to accept username OR email) ✨
+// ---------------------------------------------------
+app.post("/api/auth/login", (req, res) => {
+    const { identifier, password } = req.body; // 'identifier' can be username or email
+    if (!identifier || !password) {
+        return res.status(400).json({ message: "Identifier and password required" });
+    }
+    
+    // Query checks both username and email columns
+    const sql = "SELECT * FROM users WHERE username = ? OR email = ?";
+    
+    db.query(sql, [identifier, identifier], (err, results) => {
+        if (err) return res.status(500).json({ message: "Error logging in" });
+        if (results.length === 0) {
+            return res.status(401).json({ message: "Invalid credentials" });
+        }
+        const user = results[0];
+        bcrypt.compare(password, user.password, (err, isMatch) => {
+            if (err) return res.status(500).json({ message: "Error logging in" });
+            if (!isMatch) {
+                return res.status(401).json({ message: "Invalid credentials" });
+            }
+            const tokenPayload = { id: user.id, username: user.username, role: user.role, name: user.first_name };
+            const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1h' });
+            res.json({ message: "✅ Login successful", token });
+        });
+    });
+});
+
+// --- PUBLIC & PROTECTED ROUTES (Unchanged) ---
 app.get("/api/courses", (req, res) => {
-  const sql = `
+    const sql = `
         SELECT c.id, c.title, c.description, u.username AS instructor_name 
         FROM courses c JOIN users u ON c.instructor_id = u.id WHERE u.role = 'instructor'`;
   db.query(sql, (err, results) => {
@@ -133,49 +145,41 @@ app.get("/api/courses/:id", (req, res) => {
   });
 });
 
-
-// ------------------------------------------
-// ✨ NEW PROTECTED DASHBOARD ROUTE ✨
-// ------------------------------------------
 app.get("/api/dashboard", authenticateToken, (req, res) => {
-  const { id: userId, role } = req.user; // Get user info from the decoded token
-
-  if (role === 'student') {
-    // For students: Get their enrolled courses and progress
-    const sql = `
-      SELECT
-        c.id AS course_id,
-        c.title AS course_title,
-        (SELECT COUNT(*) FROM lessons WHERE course_id = c.id) AS total_lessons,
-        (SELECT COUNT(*) FROM progress p JOIN enrollments e_inner ON p.enrollment_id = e_inner.id WHERE e_inner.student_id = ? AND e_inner.course_id = c.id) AS completed_lessons
-      FROM courses c
-      JOIN enrollments e ON c.id = e.course_id
-      WHERE e.student_id = ?
-    `;
-    db.query(sql, [userId, userId], (err, results) => {
-      if (err) return res.status(500).json({ message: "Error fetching student dashboard data" });
-      res.json(results);
-    });
-  } else if (role === 'instructor') {
-    // For instructors: Get the courses they've created and enrollment counts
-    const sql = `
-      SELECT
-        c.id AS course_id,
-        c.title AS course_title,
-        (SELECT COUNT(*) FROM enrollments WHERE course_id = c.id) AS enrollment_count,
-        (SELECT COUNT(*) FROM lessons WHERE course_id = c.id) AS lesson_count
-      FROM courses c
-      WHERE c.instructor_id = ?
-    `;
-    db.query(sql, [userId], (err, results) => {
-      if (err) return res.status(500).json({ message: "Error fetching instructor dashboard data" });
-      res.json(results);
-    });
-  } else {
-    return res.status(403).json({ message: "User role not recognized" });
-  }
+    const { id: userId, role } = req.user;
+    if (role === 'student') {
+        const sql = `
+          SELECT
+            c.id AS course_id,
+            c.title AS course_title,
+            (SELECT COUNT(*) FROM lessons WHERE course_id = c.id) AS total_lessons,
+            (SELECT COUNT(*) FROM progress p JOIN enrollments e_inner ON p.enrollment_id = e_inner.id WHERE e_inner.student_id = ? AND e_inner.course_id = c.id) AS completed_lessons
+          FROM courses c
+          JOIN enrollments e ON c.id = e.course_id
+          WHERE e.student_id = ?
+        `;
+        db.query(sql, [userId, userId], (err, results) => {
+          if (err) return res.status(500).json({ message: "Error fetching student dashboard data" });
+          res.json(results);
+        });
+    } else if (role === 'instructor') {
+        const sql = `
+          SELECT
+            c.id AS course_id,
+            c.title AS course_title,
+            (SELECT COUNT(*) FROM enrollments WHERE course_id = c.id) AS enrollment_count,
+            (SELECT COUNT(*) FROM lessons WHERE course_id = c.id) AS lesson_count
+          FROM courses c
+          WHERE c.instructor_id = ?
+        `;
+        db.query(sql, [userId], (err, results) => {
+          if (err) return res.status(500).json({ message: "Error fetching instructor dashboard data" });
+          res.json(results);
+        });
+    } else {
+        return res.status(403).json({ message: "User role not recognized" });
+    }
 });
-
 
 // ---------------- START SERVER ----------------
 const PORT = 5000;

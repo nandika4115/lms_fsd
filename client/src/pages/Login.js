@@ -22,8 +22,11 @@ function Login() {
     }
     try {
       const res = await axios.post(`${API_URL}/api/auth/login`, formData);
-      alert(res.data.message);
-      setFormData({ username: "", password: "" });
+      alert(res.data.message); // You might want to remove this alert for a smoother experience
+      
+      // ✨ FIX: Use the navigate function to redirect the user after login
+      navigate('/'); // This will send the user to the homepage
+
     } catch (err) {
       console.error("Login error:", err);
       alert(err.response?.data?.message || "Invalid login");

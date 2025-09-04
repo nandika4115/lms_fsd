@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import logo from './edulearnpro-logo.png'; // Using the logo you downloaded
+import logo from './edulearnpro-logo.png';
+import AuthContext from '../context/AuthContext';
 
 const API_URL = "http://localhost:5000";
 
 function Login() {
-  const [formData, setFormData] = useState({ username: "", password: "" });
+  // Updated state to use a single 'identifier' field
+  const [formData, setFormData] = useState({ identifier: "", password: "" });
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -16,16 +19,18 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.username || !formData.password) {
-      alert("Email and password required");
+    if (!formData.identifier || !formData.password) {
+      alert("Username/Email and password are required");
       return;
     }
     try {
+      // Send the formData object which now contains { identifier, password }
       const res = await axios.post(`${API_URL}/api/auth/login`, formData);
-      alert(res.data.message); // You might want to remove this alert for a smoother experience
       
-      // ✨ FIX: Use the navigate function to redirect the user after login
-      navigate('/'); // This will send the user to the homepage
+      if (res.data.token) {
+        login(res.data.token);
+        navigate('/'); // Redirect to homepage on successful login
+      }
 
     } catch (err) {
       console.error("Login error:", err);
@@ -36,42 +41,37 @@ function Login() {
   return (
     <Container fluid>
       <Row className="min-vh-100">
-        
-        {/* Left Column with Branding (The style you liked) */}
         <Col md={6} className="bg-light d-none d-md-flex flex-column justify-content-center align-items-center">
-            <div className="text-center p-5">
-                <img src={logo} alt="EduLearnPro Logo" style={{ width: '150px' }} className="mb-4"/>
-                <h1 className="text-primary">EduLearnPro</h1>
-                <p className="lead">
-                Pursue real career paths through instructor-led courses taught by experts.
-                </p>
-            </div>
+          <div className="text-center">
+            <img src={logo} alt="EduLearnPro Logo" style={{ width: '150px' }} className="mb-4"/>
+            <h1 className="text-primary">EduLearnPro</h1>
+            <p className="lead">Pursue real career paths through instructor-led courses taught by experts.</p>
+          </div>
         </Col>
 
-        {/* Right Column with Centered Form */}
         <Col md={6} className="d-flex justify-content-center align-items-center">
           <div style={{ maxWidth: '400px', width: '100%' }} className="p-4">
-            <div className="text-center mb-4">
-                <h2>Welcome!</h2>
-            </div>
+            <h2 className="text-center">Welcome Back!</h2>
             <p className="text-muted mb-4 text-center">Please login to your account.</p>
             <Form onSubmit={handleSubmit}>
-              <Form.Group className="mb-3" controlId="formBasicEmail">
+              <Form.Group className="mb-3">
+                <Form.Label>Username or Email</Form.Label>
                 <Form.Control
-                  type="email"
-                  name="username"
-                  placeholder="Email"
-                  value={formData.username}
+                  type="text"
+                  name="identifier" // Use 'identifier' to match state and backend
+                  placeholder="Enter your username or email"
+                  value={formData.identifier}
                   onChange={handleChange}
                   required
                 />
               </Form.Group>
 
-              <Form.Group className="mb-3" controlId="formBasicPassword">
+              <Form.Group className="mb-3">
+                <Form.Label>Password</Form.Label>
                 <Form.Control
                   type="password"
                   name="password"
-                  placeholder="Password"
+                  placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -88,13 +88,13 @@ function Login() {
               
               <div className="d-flex align-items-center my-4">
                   <hr className="flex-grow-1" />
-                  <span className="mx-2 text-muted small">OR</span>
+                  <span className="mx-2 text-muted">Or continue with</span>
                   <hr className="flex-grow-1" />
               </div>
               
               <Button variant="outline-secondary" className="w-100 d-flex justify-content-center align-items-center py-2">
                 <img src="https://img.icons8.com/color/16/000000/google-logo.png" alt="Google icon" className="me-2"/>
-                Continue with Google
+                Google
               </Button>
 
               <div className="mt-4 text-center">

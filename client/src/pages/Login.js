@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
-import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from './edulearnpro-logo.png';
 import AuthContext from '../context/AuthContext';
@@ -8,8 +8,8 @@ import AuthContext from '../context/AuthContext';
 const API_URL = "http://localhost:5000";
 
 function Login() {
-  // Updated state to use a single 'identifier' field
   const [formData, setFormData] = useState({ identifier: "", password: "" });
+  const [error, setError] = useState(''); // State to hold error messages
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
 
@@ -19,12 +19,12 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(''); // Clear previous errors on a new submission
     if (!formData.identifier || !formData.password) {
-      alert("Username/Email and password are required");
+      setError("Username/Email and password are required");
       return;
     }
     try {
-      // Send the formData object which now contains { identifier, password }
       const res = await axios.post(`${API_URL}/api/auth/login`, formData);
       
       if (res.data.token) {
@@ -34,7 +34,8 @@ function Login() {
 
     } catch (err) {
       console.error("Login error:", err);
-      alert(err.response?.data?.message || "Invalid login");
+      // Display the error message from the backend on the page
+      setError(err.response?.data?.message || "Invalid login credentials.");
     }
   };
 
@@ -54,11 +55,14 @@ function Login() {
             <h2 className="text-center">Welcome Back!</h2>
             <p className="text-muted mb-4 text-center">Please login to your account.</p>
             <Form onSubmit={handleSubmit}>
+              {/* Display error message if one exists */}
+              {error && <Alert variant="danger">{error}</Alert>}
+
               <Form.Group className="mb-3">
                 <Form.Label>Username or Email</Form.Label>
                 <Form.Control
                   type="text"
-                  name="identifier" // Use 'identifier' to match state and backend
+                  name="identifier"
                   placeholder="Enter your username or email"
                   value={formData.identifier}
                   onChange={handleChange}

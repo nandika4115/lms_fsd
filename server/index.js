@@ -16,23 +16,17 @@ app.use(express.json());
 
 const JWT_SECRET = "your_super_secret_key_that_is_long_and_random";
 
-// --- MySQL Connection ---
+// --- MySQL Connection & Auth Middleware (Unchanged) ---
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "",
   database: "edu_platform"
 });
-
 db.connect((err) => {
-  if (err) {
-    console.error("❌ MySQL connection failed:", err);
-  } else {
-    console.log("✅ Connected to edu_platform database...");
-  }
+  if (err) console.error("❌ MySQL connection failed:", err);
+  else console.log("✅ Connected to edu_platform database...");
 });
-
-// --- Authentication Middleware ---
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -44,7 +38,7 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// --- AUTHENTICATION ROUTES ---
+// --- All Existing Routes (Unchanged) ---
 app.post("/api/auth/register", async (req, res) => {
     const { 
     firstName, lastName, username, email, password, role, 
@@ -70,13 +64,14 @@ app.post("/api/auth/register", async (req, res) => {
         }
         return res.status(500).json({ message: "Error registering user" });
       }
-      res.status(201).json({ message: "✅ User registered successfully" });
+      const newUser = { id: result.insertId, username, role, name: firstName, profile_image_url: null };
+      const token = jwt.sign(newUser, JWT_SECRET, { expiresIn: '1h' });
+      res.status(201).json({ message: "✅ User registered successfully", token });
     });
   } catch (error) {
     return res.status(500).json({ message: "Error processing request" });
   }
 });
-
 app.post("/api/auth/login", (req, res) => {
     const { identifier, password } = req.body;
     if (!identifier || !password) {
@@ -90,7 +85,6 @@ app.post("/api/auth/login", (req, res) => {
         bcrypt.compare(password, user.password, (err, isMatch) => {
             if (err) return res.status(500).json({ message: "Error logging in" });
             if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
-            
             const tokenPayload = { 
                 id: user.id, 
                 username: user.username, 
@@ -103,8 +97,6 @@ app.post("/api/auth/login", (req, res) => {
         });
     });
 });
-
-// --- PUBLIC COURSE ROUTES ---
 app.get("/api/courses", (req, res) => {
     const sql = `
         SELECT c.id, c.title, c.description, u.username AS instructor_name 
@@ -130,8 +122,6 @@ app.get("/api/courses/:id", (req, res) => {
         });
     });
 });
-
-// --- PROTECTED DASHBOARD & ENROLLMENT ROUTES ---
 app.get("/api/dashboard", authenticateToken, (req, res) => {
     const { id: userId, role } = req.user;
     if (role === 'student') {
@@ -187,8 +177,6 @@ app.post('/api/enroll', authenticateToken, (req, res) => {
         res.status(201).json({ message: "Successfully enrolled in the course!" });
     });
 });
-
-// --- PROTECTED PROFILE ROUTES ---
 app.get('/api/profile', authenticateToken, (req, res) => {
     const { id: userId } = req.user;
     const sql = `
@@ -217,6 +205,30 @@ app.post('/api/profile/picture', authenticateToken, (req, res) => {
         res.json({ message: "Profile picture updated successfully!" });
     });
 });
+
+// ------------------------------------------------------------------
+// ✨ NEW - PROTECTED ROUTE TO GET A STUDENT'S ENROLLED COURSE IDs ✨
+// ------------------------------------------------------------------
+app.get('/api/enrollments', authenticateToken, (req, res) => {
+    const { id: studentId, role } = req.user;
+
+    // This endpoint is only for students
+    if (role !== 'student') {
+        return res.json([]); // Return an empty array for non-students
+    }
+
+    const sql = "SELECT course_id FROM enrollments WHERE student_id = ?";
+    db.query(sql, [studentId], (err, results) => {
+        if (err) {
+            console.error("Error fetching enrollments:", err);
+            return res.status(500).json({ message: "An error occurred while fetching enrollments." });
+        }
+        // Send back a simple array of course IDs for easy lookup on the frontend
+        const courseIds = results.map(row => row.course_id);
+        res.json(courseIds);
+    });
+});
+
 
 // ---------------- START SERVER ----------------
 const PORT = 5000;

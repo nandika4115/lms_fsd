@@ -1,26 +1,49 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
+import axios from 'axios';
 
-// 1. Create the context
+const API_URL = "http://localhost:5000";
 const AuthContext = createContext();
 
-// 2. Create the provider component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState(new Set());
 
+  // This effect runs whenever the user logs in or out
+  useEffect(() => {
+    const fetchEnrollments = async () => {
+      const token = localStorage.getItem('token');
+      // Only fetch if the user is a logged-in student
+      if (user && user.role === 'student' && token) {
+        try {
+          const response = await axios.get(`${API_URL}/api/enrollments`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          // Store the fetched course IDs in our state
+          setEnrolledCourseIds(new Set(response.data));
+        } catch (error) {
+          console.error("Could not fetch user enrollments:", error);
+        }
+      } else {
+        // Clear the enrollments if the user logs out or is not a student
+        setEnrolledCourseIds(new Set());
+      }
+    };
+    fetchEnrollments();
+  }, [user]); // The dependency array ensures this runs when the `user` object changes
+
+  // This effect checks for a token on the initial app load
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       try {
         const decodedUser = jwtDecode(token);
-        const isExpired = decodedUser.exp * 1000 < Date.now();
-        if (!isExpired) {
+        if (decodedUser.exp * 1000 > Date.now()) {
           setUser(decodedUser);
         } else {
           localStorage.removeItem('token');
         }
       } catch (error) {
-        console.error("Invalid token:", error);
         localStorage.removeItem('token');
       }
     }
@@ -28,23 +51,27 @@ export const AuthProvider = ({ children }) => {
 
   const login = (token) => {
     localStorage.setItem('token', token);
-    const decodedUser = jwtDecode(token);
-    setUser(decodedUser);
+    setUser(jwtDecode(token));
   };
 
-  // The logout function now accepts an optional callback to run after logging out
   const logout = (callback) => {
     localStorage.removeItem('token');
     setUser(null);
-    if (callback) {
-      callback(); // This will be our navigate function
-    }
+    if (callback) callback();
+  };
+
+  // This function allows a component to instantly update the UI after enrolling
+  // without needing to refresh the page.
+  const addEnrollment = (courseId) => {
+    setEnrolledCourseIds(prevIds => new Set(prevIds).add(courseId));
   };
 
   const value = {
     user,
     login,
     logout,
+    enrolledCourseIds, // Expose the set of enrolled course IDs
+    addEnrollment,     // Expose the function to add a new enrollment
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -2,10 +2,8 @@
 body {
   background-color: #f8f9fa;
 }
-
 .card {
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  border: 1px solid #e9ecef;
+  border: none !important; /* Remove default borders for a cleaner look */
 }
 
 /* --- Profile Picture Avatar Styling --- */
@@ -14,30 +12,16 @@ body {
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(0, 0, 0, 0.1); /* Darker border for light navbar */
+  border: 2px solid rgba(0, 0, 0, 0.1);
 }
 
-/* --- Courses Page Styling --- */
-.courses-page-background {
-  background-color: #f4f7f6;
+/* --- Homepage & General Sections --- */
+.courses-page-background, .curriculum-section {
+  background-color: #f8f9fa;
   padding-bottom: 3rem;
+  border-top: 1px solid #dee2e6;
 }
 .page-header h1 { color: #343a40; }
-.course-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-}
-.course-card-img { height: 180px; object-fit: cover; }
-.course-card-text {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-height: 72px;
-}
-
-/* --- Homepage Styling --- */
 .hero-section {
   background: linear-gradient(45deg, #26a69a, #2e7d32); 
   padding: 8rem 0;
@@ -50,14 +34,29 @@ body {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease-in-out;
 }
-.content-section-wrapper {
-    background-color: #f0f7f7;
+.content-section-wrapper { background-color: #f0f7f7; }
+.cta-section { background-color: #e3f2fd; }
+.about-section { background-color: #ffffff; }
+
+/* --- Course Card Styling --- */
+.course-card-new {
+    border-radius: 15px !important;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
-.cta-section { 
-    background-color: #e3f2fd;
+.course-card-new:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
-.about-section {
-  background-color: #ffffff;
+.course-card-title {
+    color: #343a40;
+}
+.course-card-text {
+  color: #6c757d;
+  min-height: 96px; /* Approx 4 lines of text */
+}
+.course-card-btn {
+    border-radius: 8px !important;
+    font-weight: 500 !important;
 }
 
 /* --- Bright Navbar & Sidebar Styling --- */
@@ -79,10 +78,7 @@ body {
   padding: 0 !important;
   box-shadow: none !important;
 }
-.sidebar-toggle-btn:hover {
-  color: #00796B !important;
-}
-/* ✨ --- Rule to make all navbar buttons larger --- ✨ */
+.sidebar-toggle-btn:hover { color: #00796B !important; }
 .app-navbar .btn {
     padding: 0.5rem 1rem !important;
     font-size: 1rem !important;
@@ -93,18 +89,13 @@ body {
   font-weight: 500 !important;
   border: none !important;
 }
-.dashboard-btn:hover {
-    background-color: #004D40 !important;
-}
-
+.dashboard-btn:hover { background-color: #004D40 !important; }
 .app-sidebar.offcanvas {
     width: 280px !important;
     background-color: #E0F2F1;
     color: #004D40;
 }
-.app-sidebar .offcanvas-header {
-  border-bottom: 1px solid #B2DFDB;
-}
+.app-sidebar .offcanvas-header { border-bottom: 1px solid #B2DFDB; }
 .app-sidebar .btn-close {}
 .app-sidebar .sidebar-link {
   font-size: 1.2rem !important;
@@ -119,18 +110,13 @@ body {
   background-color: #B2DFDB;
   color: #004D40;
 }
-.app-sidebar .sidebar-divider {
-    border-top: 1px solid #B2DFDB;
-}
+.app-sidebar .sidebar-divider { border-top: 1px solid #B2DFDB; }
 
-/* --- ✨ Designer Footer Styling (REVISED) ✨ --- */
+/* --- Designer Footer Styling --- */
 footer#footer-contact.bg-dark {
-  /* Restored the vibrant green gradient */
   background: linear-gradient(45deg, #26a69a, #2e7d32) !important;
 }
-footer#footer-contact h5, footer#footer-contact h6 {
-    color: #ffffff; /* Changed heading color to white for better contrast */
-}
+footer#footer-contact h5, footer#footer-contact h6 { color: #ffffff; }
 footer#footer-contact .nav-link:hover {
     color: #ffffff !important;
     text-decoration: underline;
@@ -138,5 +124,25 @@ footer#footer-contact .nav-link:hover {
 footer#footer-contact .copyright-text {
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.6);
+}
+
+/* --- Lesson Card Styling (from Course Detail Page) --- */
+.lesson-card {
+    border-radius: 15px !important;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.lesson-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+.lesson-card .card-title {
+    color: #343a40;
+}
+
+/* --- ✨ Styling for Enrolled Button on Course Cards ✨ --- */
+.enrolled-btn {
+    font-weight: 500 !important;
+    cursor: default !important; /* Make it look non-clickable */
+    opacity: 1 !important; /* Ensure it's fully visible */
 }
 

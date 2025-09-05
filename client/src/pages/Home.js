@@ -1,14 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Image, Button, Card } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from 'react';
+import { Container, Row, Col, Image, Button, Card, Alert } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
+import { CodeSlash, Brush, GraphUp } from 'react-bootstrap-icons';
 import axios from 'axios';
+import AuthContext from '../context/AuthContext'; // Import AuthContext
 
 const API_URL = "http://localhost:5000";
 
-const cardColors = ['#4DB6AC', '#7986CB', '#FFB74D', '#F06292', '#9575CD'];
+const cardStyles = [
+  { color: '#E8F5E9', icon: <CodeSlash size={40} className="text-success" /> },
+  { color: '#E3F2FD', icon: <GraphUp size={40} className="text-primary" /> },
+  { color: '#FFF3E0', icon: <Brush size={40} className="text-warning" /> }
+];
 
+// --- ✨ Featured Courses Component (Upgraded with Enrollment Logic) ✨ ---
 function FeaturedCourses() {
   const [courses, setCourses] = useState([]);
+  // Get all the necessary data and functions from the AuthContext
+  const { user, enrolledCourseIds, addEnrollment } = useContext(AuthContext);
+  const [enrollmentStatus, setEnrollmentStatus] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchFeaturedCourses = async () => {
@@ -22,39 +33,84 @@ function FeaturedCourses() {
     fetchFeaturedCourses();
   }, []);
 
+  // This is the same enrollment handler from the CoursesPage
+  const handleEnroll = async (courseId) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    setEnrollmentStatus(prev => ({ ...prev, [courseId]: { message: 'Enrolling...', type: 'info' } }));
+    try {
+      const response = await axios.post(`${API_URL}/api/enroll`, { courseId }, { headers: { Authorization: `Bearer ${token}` } });
+      setEnrollmentStatus(prev => ({ ...prev, [courseId]: { message: response.data.message, type: 'success' } }));
+      addEnrollment(courseId); // Instantly update the global state
+    } catch (err) {
+      setEnrollmentStatus(prev => ({ ...prev, [courseId]: { message: err.response?.data?.message || `Failed to enroll.`, type: 'danger' } }));
+    }
+  };
+
   return (
     <div className="py-5">
       <Container>
         <h2 className="text-center fw-bold mb-5">Featured Courses</h2>
         <Row>
-          {courses.map((course, index) => (
-            <Col md={6} lg={4} key={course.id} className="mb-4">
-              <Card 
-                className="h-100 course-card rounded-4 shadow-sm" 
-                style={{ borderTop: `5px solid ${cardColors[index % cardColors.length]}` }}
-              >
-                <Card.Img 
-                  variant="top" 
-                  src={`https://placehold.co/600x400/${cardColors[index % cardColors.length].substring(1)}/FFFFFF?text=${course.title.replace(/\s/g, '+')}`}
-                  className="course-card-img"
-                />
-                <Card.Body className="d-flex flex-column p-4">
-                  <Card.Title as="h5" className="fw-bold">{course.title}</Card.Title>
-                  <Card.Text className="course-card-text">{course.description}</Card.Text>
-                  <Button as={Link} to={`/courses/${course.id}`} variant="primary" className="mt-auto align-self-start">
-                    Learn More
-                  </Button>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))}
+          {courses.map((course, index) => {
+            const isEnrolled = enrolledCourseIds.has(course.id);
+            const status = enrollmentStatus[course.id];
+            const style = cardStyles[index % cardStyles.length];
+
+            return (
+              <Col md={6} lg={4} key={course.id} className="mb-4">
+                <Card className="h-100 course-card-new" style={{ backgroundColor: style.color }}>
+                  <Card.Body className="p-4 d-flex flex-column">
+                    <div className="mb-3">{style.icon}</div>
+                    <Card.Title as="h4" className="fw-bold course-card-title">{course.title}</Card.Title>
+                    <Card.Text className="course-card-text mb-4">{course.description}</Card.Text>
+                    
+                    <div className="mt-auto">
+                      {isEnrolled ? (
+                        // --- UI for Enrolled Students ---
+                        <div>
+                          <Button variant="success" className="w-100 mb-2 enrolled-btn" disabled>Enrolled</Button>
+                          <div className="d-flex">
+                              <Button as={Link} to={`/courses/${course.id}`} variant="dark" className="course-card-btn flex-grow-1 me-1">View</Button>
+                              <Button as={Link} to={`/courses/${course.id}/resume`} variant="dark" className="course-card-btn flex-grow-1 ms-1">Resume</Button>
+                          </div>
+                        </div>
+                      ) : (
+                        // --- UI for Not Enrolled Users ---
+                        <div>
+                           {status && <Alert variant={status.type} className="py-2 mb-3">{status.message}</Alert>}
+                           <Button as={Link} to={`/courses/${course.id}`} variant="dark" className="course-card-btn me-2">View Details</Button>
+                           {user && user.role === 'student' && (
+                            <Button 
+                              variant="dark"
+                              className="course-card-btn"
+                              onClick={() => handleEnroll(course.id)}
+                              disabled={status?.type === 'success'}
+                            >
+                              {status?.type === 'info' ? 'Enrolling...' : 'Enroll Now'}
+                            </Button>
+                           )}
+                        </div>
+                      )}
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Col>
+            );
+          })}
         </Row>
       </Container>
     </div>
   );
 }
 
+// --- Main Homepage Component (Unchanged) ---
 function HomePage() {
+  const { user } = useContext(AuthContext);
+
   return (
     <>
       <div className="hero-section text-white text-center">
@@ -73,7 +129,6 @@ function HomePage() {
         </Container>
       </div>
 
-      {/* ✨ Added a wrapper div with a new class for styling ✨ */}
       <div className="content-section-wrapper">
         <FeaturedCourses />
 
@@ -100,15 +155,17 @@ function HomePage() {
         </div>
       </div>
 
-      <div className="cta-section text-center py-5">
-          <Container>
-              <h2 className="fw-bold">Ready to Start Learning?</h2>
-              <p className="text-muted my-3">Create an account to enroll in courses, track your progress, and join our community.</p>
-              <Button as={Link} to="/register" variant="success" size="lg">
-                  Sign Up for Free
-              </Button>
-          </Container>
-      </div>
+      {!user && (
+        <div className="cta-section text-center py-5">
+            <Container>
+                <h2 className="fw-bold">Ready to Start Learning?</h2>
+                <p className="text-muted my-3">Create an account to enroll in courses, track your progress, and join our community.</p>
+                <Button as={Link} to="/register" variant="success" size="lg">
+                    Sign Up for Free
+                </Button>
+            </Container>
+        </div>
+      )}
     </>
   );
 }

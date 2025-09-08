@@ -16,17 +16,23 @@ app.use(express.json());
 
 const JWT_SECRET = "your_super_secret_key_that_is_long_and_random";
 
-// --- MySQL Connection & Auth Middleware (Unchanged) ---
+// --- MySQL Connection ---
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "",
   database: "edu_platform"
 });
+
 db.connect((err) => {
-  if (err) console.error("❌ MySQL connection failed:", err);
-  else console.log("✅ Connected to edu_platform database...");
+  if (err) {
+    console.error("❌ MySQL connection failed:", err);
+  } else {
+    console.log("✅ Connected to edu_platform database...");
+  }
 });
+
+// --- Authentication Middleware ---
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -38,7 +44,7 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// --- All Existing Routes (Unchanged) ---
+// --- AUTHENTICATION ROUTES ---
 app.post("/api/auth/register", async (req, res) => {
     const { 
     firstName, lastName, username, email, password, role, 
@@ -72,6 +78,7 @@ app.post("/api/auth/register", async (req, res) => {
     return res.status(500).json({ message: "Error processing request" });
   }
 });
+
 app.post("/api/auth/login", (req, res) => {
     const { identifier, password } = req.body;
     if (!identifier || !password) {
@@ -97,6 +104,8 @@ app.post("/api/auth/login", (req, res) => {
         });
     });
 });
+
+// --- PUBLIC COURSE ROUTES ---
 app.get("/api/courses", (req, res) => {
     const sql = `
         SELECT c.id, c.title, c.description, u.username AS instructor_name 
@@ -122,6 +131,8 @@ app.get("/api/courses/:id", (req, res) => {
         });
     });
 });
+
+// --- PROTECTED DASHBOARD & ENROLLMENT ROUTES ---
 app.get("/api/dashboard", authenticateToken, (req, res) => {
     const { id: userId, role } = req.user;
     if (role === 'student') {
@@ -177,6 +188,23 @@ app.post('/api/enroll', authenticateToken, (req, res) => {
         res.status(201).json({ message: "Successfully enrolled in the course!" });
     });
 });
+app.get('/api/enrollments', authenticateToken, (req, res) => {
+    const { id: studentId, role } = req.user;
+    if (role !== 'student') {
+        return res.json([]);
+    }
+    const sql = "SELECT course_id FROM enrollments WHERE student_id = ?";
+    db.query(sql, [studentId], (err, results) => {
+        if (err) {
+            return res.status(500).json({ message: "An error occurred while fetching enrollments." });
+        }
+        const courseIds = results.map(row => row.course_id);
+        res.json(courseIds);
+    });
+});
+
+
+// --- PROTECTED PROFILE ROUTES ---
 app.get('/api/profile', authenticateToken, (req, res) => {
     const { id: userId } = req.user;
     const sql = `
@@ -205,34 +233,107 @@ app.post('/api/profile/picture', authenticateToken, (req, res) => {
         res.json({ message: "Profile picture updated successfully!" });
     });
 });
-
-// ------------------------------------------------------------------
-// ✨ NEW - PROTECTED ROUTE TO GET A STUDENT'S ENROLLED COURSE IDs ✨
-// ------------------------------------------------------------------
-app.get('/api/enrollments', authenticateToken, (req, res) => {
-    const { id: studentId, role } = req.user;
-
-    // This endpoint is only for students
-    if (role !== 'student') {
-        return res.json([]); // Return an empty array for non-students
+app.put('/api/profile', authenticateToken, (req, res) => {
+    const { id: userId } = req.user;
+    const { firstName, lastName, phoneNumber, age, currentActivity, activityPlace } = req.body;
+    if (!firstName || !lastName) {
+        return res.status(400).json({ message: "First name and last name are required." });
     }
-
-    const sql = "SELECT course_id FROM enrollments WHERE student_id = ?";
-    db.query(sql, [studentId], (err, results) => {
+    const sql = `
+        UPDATE users 
+        SET first_name = ?, last_name = ?, phone_number = ?, age = ?, 
+            current_activity = ?, activity_place = ?
+        WHERE id = ?
+    `;
+    const values = [firstName, lastName, phoneNumber, age, currentActivity, activityPlace, userId];
+    db.query(sql, values, (err, result) => {
         if (err) {
-            console.error("Error fetching enrollments:", err);
-            return res.status(500).json({ message: "An error occurred while fetching enrollments." });
+            return res.status(500).json({ message: "An error occurred while updating your profile." });
         }
-        // Send back a simple array of course IDs for easy lookup on the frontend
-        const courseIds = results.map(row => row.course_id);
-        res.json(courseIds);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "User not found." });
+        }
+        res.json({ message: "Profile updated successfully!" });
     });
 });
 
+// --- INSTRUCTOR CONTENT CREATION ROUTES ---
+app.post('/api/courses', authenticateToken, (req, res) => {
+    const { id: instructorId, role } = req.user;
+    const { title, description } = req.body;
+    if (role !== 'instructor') {
+        return res.status(403).json({ message: "You are not authorized to create courses." });
+    }
+    if (!title || !description) {
+        return res.status(400).json({ message: "Title and description are required." });
+    }
+    const sql = "INSERT INTO courses (title, description, instructor_id) VALUES (?, ?, ?)";
+    db.query(sql, [title, description, instructorId], (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: "Failed to create course." });
+        }
+        res.status(201).json({ message: "Course created successfully!", courseId: result.insertId });
+    });
+});
+app.post('/api/courses/:courseId/lessons', authenticateToken, (req, res) => {
+    const { id: instructorId, role } = req.user;
+    const { courseId } = req.params;
+    const { title, content } = req.body;
+    if (role !== 'instructor') {
+        return res.status(403).json({ message: "You are not authorized to add lessons." });
+    }
+    if (!title) {
+        return res.status(400).json({ message: "Lesson title is required." });
+    }
+    const verifyOwnershipSql = "SELECT instructor_id FROM courses WHERE id = ?";
+    db.query(verifyOwnershipSql, [courseId], (err, results) => {
+        if (err) return res.status(500).json({ message: "Server error." });
+        if (results.length === 0 || results[0].instructor_id !== instructorId) {
+            return res.status(403).json({ message: "You can only add lessons to your own courses." });
+        }
+        const insertLessonSql = "INSERT INTO lessons (course_id, title, content) VALUES (?, ?, ?)";
+        db.query(insertLessonSql, [courseId, title, content || ''], (err, result) => {
+            if (err) {
+                return res.status(500).json({ message: "Failed to add lesson." });
+            }
+            res.status(201).json({ message: "Lesson added successfully!" });
+        });
+    });
+});
+app.get('/api/lessons/:lessonId', authenticateToken, (req, res) => {
+    const { id: studentId, role } = req.user;
+    const { lessonId } = req.params;
+    if (role !== 'student') {
+        return res.status(403).json({ message: "Only students can view lessons." });
+    }
+    const verificationSql = `
+        SELECT l.id
+        FROM lessons l
+        JOIN enrollments e ON l.course_id = e.course_id
+        WHERE l.id = ? AND e.student_id = ?
+    `;
+    db.query(verificationSql, [lessonId, studentId], (err, results) => {
+        if (err) {
+            return res.status(500).json({ message: "Server error." });
+        }
+        if (results.length === 0) {
+            return res.status(403).json({ message: "You are not enrolled in the course for this lesson." });
+        }
+        const lessonSql = "SELECT id, title, content FROM lessons WHERE id = ?";
+        db.query(lessonSql, [lessonId], (err, lessonResult) => {
+            if (err) {
+                return res.status(500).json({ message: "Server error." });
+            }
+            if (lessonResult.length === 0) {
+                return res.status(404).json({ message: "Lesson not found." });
+            }
+            res.json(lessonResult[0]);
+        });
+    });
+});
 
 // ---------------- START SERVER ----------------
 const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
-

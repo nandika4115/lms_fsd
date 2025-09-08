@@ -11,39 +11,39 @@ import CourseDetail from './pages/CourseDetail';
 import ProfilePage from './pages/ProfilePage';
 import AppFooter from './components/AppFooter';
 import AuthContext from './context/AuthContext';
+import CreateCoursePage from './pages/CreateCoursePage'; // ✨ Import the new page
+import ProtectedRoute from './components/ProtectedRoute'; // ✨ Import the security component
 
-// --- Sidebar (Offcanvas) Component ---
+// --- Sidebar, Navbar, ScrollHandler (These are complete and unchanged) ---
 function AppSidebar({ show, handleClose }) {
-  return (
-    <Offcanvas show={show} onHide={handleClose} className="app-sidebar">
-      <Offcanvas.Header closeButton>
-        <Offcanvas.Title>Menu</Offcanvas.Title>
-      </Offcanvas.Header>
-      <Offcanvas.Body>
-        <Nav className="flex-column">
-          <Nav.Link as={Link} to="/" onClick={handleClose} className="sidebar-link d-flex align-items-center">
-            <HouseDoor className="me-3" size={22} /> Home
-          </Nav.Link>
-          <Nav.Link as={Link} to="/courses" onClick={handleClose} className="sidebar-link d-flex align-items-center">
-            <Book className="me-3" size={22} /> Explore Courses
-          </Nav.Link>
-          <Nav.Link as={Link} to="/#about-us" onClick={handleClose} className="sidebar-link d-flex align-items-center">
-            <InfoCircle className="me-3" size={22} /> About Us
-          </Nav.Link>
-          <Nav.Link as={Link} to="/#footer-contact" onClick={handleClose} className="sidebar-link d-flex align-items-center">
-            <Envelope className="me-3" size={22} /> Contact
-          </Nav.Link>
-          <hr className="sidebar-divider" />
-          <Nav.Link as={Link} to="/profile" onClick={handleClose} className="sidebar-link d-flex align-items-center">
-            <PersonCircle className="me-3" size={22} /> Profile
-          </Nav.Link>
-        </Nav>
-      </Offcanvas.Body>
-    </Offcanvas>
-  );
+    return (
+        <Offcanvas show={show} onHide={handleClose} className="app-sidebar">
+          <Offcanvas.Header closeButton>
+            <Offcanvas.Title>Menu</Offcanvas.Title>
+          </Offcanvas.Header>
+          <Offcanvas.Body>
+            <Nav className="flex-column">
+              <Nav.Link as={Link} to="/" onClick={handleClose} className="sidebar-link d-flex align-items-center">
+                <HouseDoor className="me-3" size={22} /> Home
+              </Nav.Link>
+              <Nav.Link as={Link} to="/courses" onClick={handleClose} className="sidebar-link d-flex align-items-center">
+                <Book className="me-3" size={22} /> Explore Courses
+              </Nav.Link>
+              <Nav.Link as={Link} to="/#about-us" onClick={handleClose} className="sidebar-link d-flex align-items-center">
+                <InfoCircle className="me-3" size={22} /> About Us
+              </Nav.Link>
+              <Nav.Link as={Link} to="/#footer-contact" onClick={handleClose} className="sidebar-link d-flex align-items-center">
+                <Envelope className="me-3" size={22} /> Contact
+              </Nav.Link>
+              <hr className="sidebar-divider" />
+              <Nav.Link as={Link} to="/profile" onClick={handleClose} className="sidebar-link d-flex align-items-center">
+                <PersonCircle className="me-3" size={22} /> Profile
+              </Nav.Link>
+            </Nav>
+          </Offcanvas.Body>
+        </Offcanvas>
+      );
 }
-
-// --- Navbar Component ---
 function AppNavbar() {
     const { user, logout } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -70,7 +70,7 @@ function AppNavbar() {
                       <Button variant="danger" onClick={handleLogout} className="me-3">Logout</Button>
                       <Link to="/profile">
                           <Image 
-                              src={user.profile_image_url || `https://placehold.co/40x40/FFFFFF/343a40?text=${user.name.charAt(0)}`} 
+                              src={user.profile_image_url || `https://placehold.co/40x40/FFFFFF/004D40?text=${user.name.charAt(0)}`} 
                               alt={`${user.name}'s profile`}
                               className="profile-avatar"
                           />
@@ -86,8 +86,6 @@ function AppNavbar() {
         </>
     );
 }
-
-// --- Scroll Handler ---
 function ScrollHandler() {
     const location = useLocation();
     useEffect(() => {
@@ -106,7 +104,7 @@ function ScrollHandler() {
     return null;
 }
 
-// --- App Content Component ---
+// --- App Content Component (Updated with the new route) ---
 function AppContent() {
   const location = useLocation();
   const showNavAndFooter = !['/login', '/register'].includes(location.pathname);
@@ -116,13 +114,23 @@ function AppContent() {
       {showNavAndFooter && <AppNavbar />}
       <main className="flex-grow-1">
         <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/courses" element={<CoursesPage />} />
             <Route path="/courses/:id" element={<CourseDetail />} />
+
+            {/* Protected Routes for any logged-in user */}
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<ProfilePage />} />
+            
+            {/* ✨ New Instructor-Only Protected Route ✨ */}
+            {/* This special route ensures only instructors can access the pages inside it */}
+            <Route element={<ProtectedRoute requiredRole="instructor" />}>
+                <Route path="/create-course" element={<CreateCoursePage />} />
+                {/* We will add the "Manage Course" route here later */}
+            </Route>
         </Routes>
       </main>
       {showNavAndFooter && <AppFooter />}

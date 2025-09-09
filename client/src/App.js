@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
 import { Navbar, Nav, Container, Button, Offcanvas, Image } from 'react-bootstrap';
-import { List, HouseDoor, Book, InfoCircle, Envelope, PersonCircle } from 'react-bootstrap-icons';
+import { List, HouseDoor, Book, InfoCircle, Envelope, PersonCircle, Grid1x2Fill, BoxArrowRight, BoxArrowInRight } from 'react-bootstrap-icons';
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -11,39 +11,64 @@ import CourseDetail from './pages/CourseDetail';
 import ProfilePage from './pages/ProfilePage';
 import AppFooter from './components/AppFooter';
 import AuthContext from './context/AuthContext';
-import CreateCoursePage from './pages/CreateCoursePage'; // ✨ Import the new page
-import ProtectedRoute from './components/ProtectedRoute'; // ✨ Import the security component
+import CreateCoursePage from './pages/CreateCoursePage';
+// import ManageCoursePage from './pages/ManageCoursePage';
+import ProtectedRoute from './components/ProtectedRoute';
 
-// --- Sidebar, Navbar, ScrollHandler (These are complete and unchanged) ---
+// --- ✨ Sidebar (Offcanvas) Component (Updated Logic) ✨ ---
 function AppSidebar({ show, handleClose }) {
-    return (
-        <Offcanvas show={show} onHide={handleClose} className="app-sidebar">
-          <Offcanvas.Header closeButton>
-            <Offcanvas.Title>Menu</Offcanvas.Title>
-          </Offcanvas.Header>
-          <Offcanvas.Body>
-            <Nav className="flex-column">
-              <Nav.Link as={Link} to="/" onClick={handleClose} className="sidebar-link d-flex align-items-center">
-                <HouseDoor className="me-3" size={22} /> Home
+  const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const handleLogoutAndClose = () => {
+    logout(() => navigate('/'));
+    handleClose();
+  };
+
+  return (
+    <Offcanvas show={show} onHide={handleClose} className="app-sidebar">
+      <Offcanvas.Header closeButton>
+        <Offcanvas.Title>Menu</Offcanvas.Title>
+      </Offcanvas.Header>
+      <Offcanvas.Body>
+        <Nav className="flex-column">
+          {/* --- Public Links (Always visible) --- */}
+          <Nav.Link as={Link} to="/" onClick={handleClose} className="sidebar-link d-flex align-items-center"><HouseDoor className="me-3" size={22} /> Home</Nav.Link>
+          <Nav.Link as={Link} to="/courses" onClick={handleClose} className="sidebar-link d-flex align-items-center"><Book className="me-3" size={22} /> Explore Courses</Nav.Link>
+          <Nav.Link as={Link} to="/#about-us" onClick={handleClose} className="sidebar-link d-flex align-items-center"><InfoCircle className="me-3" size={22} /> About Us</Nav.Link>
+          <Nav.Link as={Link} to="/#footer-contact" onClick={handleClose} className="sidebar-link d-flex align-items-center"><Envelope className="me-3" size={22} /> Contact</Nav.Link>
+          
+          <hr className="sidebar-divider" />
+
+          {/* --- User-Specific Links (Conditional) --- */}
+          {user ? (
+            // If user IS logged in, show these links
+            <>
+              <Nav.Link as={Link} to="/dashboard" onClick={handleClose} className="sidebar-link d-lg-none d-flex align-items-center">
+                <Grid1x2Fill className="me-3" size={22} /> Dashboard
               </Nav.Link>
-              <Nav.Link as={Link} to="/courses" onClick={handleClose} className="sidebar-link d-flex align-items-center">
-                <Book className="me-3" size={22} /> Explore Courses
-              </Nav.Link>
-              <Nav.Link as={Link} to="/#about-us" onClick={handleClose} className="sidebar-link d-flex align-items-center">
-                <InfoCircle className="me-3" size={22} /> About Us
-              </Nav.Link>
-              <Nav.Link as={Link} to="/#footer-contact" onClick={handleClose} className="sidebar-link d-flex align-items-center">
-                <Envelope className="me-3" size={22} /> Contact
-              </Nav.Link>
-              <hr className="sidebar-divider" />
               <Nav.Link as={Link} to="/profile" onClick={handleClose} className="sidebar-link d-flex align-items-center">
                 <PersonCircle className="me-3" size={22} /> Profile
               </Nav.Link>
-            </Nav>
-          </Offcanvas.Body>
-        </Offcanvas>
-      );
+              <Nav.Link onClick={handleLogoutAndClose} className="sidebar-link d-lg-none d-flex align-items-center">
+                <BoxArrowRight className="me-3" size={22} /> Logout
+              </Nav.Link>
+            </>
+          ) : (
+            // If user is NOT logged in, only show the responsive Login button
+            <>
+              <Nav.Link as={Link} to="/login" onClick={handleClose} className="sidebar-link d-lg-none d-flex align-items-center">
+                <BoxArrowInRight className="me-3" size={22} /> Login
+              </Nav.Link>
+            </>
+          )}
+        </Nav>
+      </Offcanvas.Body>
+    </Offcanvas>
+  );
 }
+
+// --- Other Components (Unchanged) ---
 function AppNavbar() {
     const { user, logout } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -65,7 +90,7 @@ function AppNavbar() {
               </div>
               <Nav>
                   {user ? (
-                  <div className="d-flex align-items-center">
+                  <div className="d-none d-lg-flex align-items-center">
                       <Button as={Link} to="/dashboard" variant="light" className="me-3 dashboard-btn">Dashboard</Button>
                       <Button variant="danger" onClick={handleLogout} className="me-3">Logout</Button>
                       <Link to="/profile">
@@ -77,7 +102,9 @@ function AppNavbar() {
                       </Link>
                   </div>
                   ) : (
-                  <Button as={Link} to="/login" variant="primary" size="md">Login</Button>
+                  <div className="d-none d-lg-block">
+                    <Button as={Link} to="/login" variant="primary" size="md">Login</Button>
+                  </div>
                   )}
               </Nav>
             </Container>
@@ -103,8 +130,6 @@ function ScrollHandler() {
     }, [location]);
     return null;
 }
-
-// --- App Content Component (Updated with the new route) ---
 function AppContent() {
   const location = useLocation();
   const showNavAndFooter = !['/login', '/register'].includes(location.pathname);
@@ -114,22 +139,15 @@ function AppContent() {
       {showNavAndFooter && <AppNavbar />}
       <main className="flex-grow-1">
         <Routes>
-            {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/courses" element={<CoursesPage />} />
             <Route path="/courses/:id" element={<CourseDetail />} />
-
-            {/* Protected Routes for any logged-in user */}
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<ProfilePage />} />
-            
-            {/* ✨ New Instructor-Only Protected Route ✨ */}
-            {/* This special route ensures only instructors can access the pages inside it */}
             <Route element={<ProtectedRoute requiredRole="instructor" />}>
                 <Route path="/create-course" element={<CreateCoursePage />} />
-                {/* We will add the "Manage Course" route here later */}
             </Route>
         </Routes>
       </main>
@@ -137,8 +155,6 @@ function AppContent() {
     </div>
   );
 }
-
-// --- Main App Component ---
 function App() {
   return (
     <Router>

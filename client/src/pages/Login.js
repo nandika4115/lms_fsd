@@ -8,8 +8,9 @@ import AuthContext from '../context/AuthContext';
 const API_URL = "http://localhost:5000";
 
 function Login() {
-  const [formData, setFormData] = useState({ identifier: "", password: "" });
-  const [error, setError] = useState(''); // State to hold error messages
+  // State updated to use 'email' specifically
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [error, setError] = useState('');
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
 
@@ -19,22 +20,21 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(''); // Clear previous errors on a new submission
-    if (!formData.identifier || !formData.password) {
-      setError("Username/Email and password are required");
+    setError('');
+    if (!formData.email || !formData.password) {
+      setError("Email and password are required");
       return;
     }
     try {
+      // The formData object now correctly sends { email, password }
       const res = await axios.post(`${API_URL}/api/auth/login`, formData);
       
       if (res.data.token) {
         login(res.data.token);
-        navigate('/'); // Redirect to homepage on successful login
+        navigate('/');
       }
 
     } catch (err) {
-      console.error("Login error:", err);
-      // Display the error message from the backend on the page
       setError(err.response?.data?.message || "Invalid login credentials.");
     }
   };
@@ -55,16 +55,16 @@ function Login() {
             <h2 className="text-center">Welcome Back!</h2>
             <p className="text-muted mb-4 text-center">Please login to your account.</p>
             <Form onSubmit={handleSubmit}>
-              {/* Display error message if one exists */}
               {error && <Alert variant="danger">{error}</Alert>}
 
+              {/* Form field updated to specifically ask for Email */}
               <Form.Group className="mb-3">
-                <Form.Label>Username or Email</Form.Label>
+                <Form.Label>Email Address</Form.Label>
                 <Form.Control
-                  type="text"
-                  name="identifier"
-                  placeholder="Enter your username or email"
-                  value={formData.identifier}
+                  type="email"
+                  name="email"
+                  placeholder="Enter your email"
+                  value={formData.email}
                   onChange={handleChange}
                   required
                 />

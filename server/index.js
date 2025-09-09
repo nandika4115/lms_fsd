@@ -80,18 +80,24 @@ app.post("/api/auth/register", async (req, res) => {
 });
 
 app.post("/api/auth/login", (req, res) => {
-    const { identifier, password } = req.body;
-    if (!identifier || !password) {
-        return res.status(400).json({ message: "Identifier and password required" });
+    const { email, password } = req.body; 
+    if (!email || !password) {
+        return res.status(400).json({ message: "Email and password required" });
     }
-    const sql = "SELECT * FROM users WHERE username = ? OR email = ?";
-    db.query(sql, [identifier, identifier], (err, results) => {
+    
+    const sql = "SELECT * FROM users WHERE email = ?";
+    
+    db.query(sql, [email], (err, results) => {
         if (err) return res.status(500).json({ message: "Error logging in" });
-        if (results.length === 0) return res.status(401).json({ message: "Invalid credentials" });
+        if (results.length === 0) {
+            return res.status(401).json({ message: "Invalid credentials" });
+        }
         const user = results[0];
         bcrypt.compare(password, user.password, (err, isMatch) => {
             if (err) return res.status(500).json({ message: "Error logging in" });
-            if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+            if (!isMatch) {
+                return res.status(401).json({ message: "Invalid credentials" });
+            }
             const tokenPayload = { 
                 id: user.id, 
                 username: user.username, 
@@ -203,7 +209,6 @@ app.get('/api/enrollments', authenticateToken, (req, res) => {
     });
 });
 
-
 // --- PROTECTED PROFILE ROUTES ---
 app.get('/api/profile', authenticateToken, (req, res) => {
     const { id: userId } = req.user;
@@ -257,7 +262,7 @@ app.put('/api/profile', authenticateToken, (req, res) => {
     });
 });
 
-// --- INSTRUCTOR CONTENT CREATION ROUTES ---
+// --- INSTRUCTOR & LESSON ROUTES ---
 app.post('/api/courses', authenticateToken, (req, res) => {
     const { id: instructorId, role } = req.user;
     const { title, description } = req.body;
@@ -337,3 +342,4 @@ const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
+

@@ -14,6 +14,8 @@ import AuthContext from './context/AuthContext';
 import CreateCoursePage from './pages/CreateCoursePage';
 // import ManageCoursePage from './pages/ManageCoursePage';
 import ProtectedRoute from './components/ProtectedRoute';
+import EditCoursePage from './pages/EditCoursePage';
+import EditProfilePage from './pages/EditProfilePage'; // 1. Import the new page
 
 // --- ✨ Sidebar (Offcanvas) Component (Updated Logic) ✨ ---
 function AppSidebar({ show, handleClose }) {
@@ -95,8 +97,8 @@ function AppNavbar() {
                       <Button variant="danger" onClick={handleLogout} className="me-3">Logout</Button>
                       <Link to="/profile">
                           <Image 
-                              src={user.profile_image_url || `https://placehold.co/40x40/FFFFFF/004D40?text=${user.name.charAt(0)}`} 
-                              alt={`${user.name}'s profile`}
+                              src={user.profile_image_url || `https://placehold.co/40x40/FFFFFF/004D40?text=${user.username.charAt(0)}`} 
+                                                           alt={`${user.username}'s profile`}
                               className="profile-avatar"
                           />
                       </Link>
@@ -148,7 +150,9 @@ function AppContent() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route element={<ProtectedRoute requiredRole="instructor" />}>
                 <Route path="/create-course" element={<CreateCoursePage />} />
+                <Route path="/edit-course/:id" element={<EditCoursePage />} /> 
             </Route>
+            <Route path="/profile/edit" element={<EditProfilePage />}/>
         </Routes>
       </main>
       {showNavAndFooter && <AppFooter />}

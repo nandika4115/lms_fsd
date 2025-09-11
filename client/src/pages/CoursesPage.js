@@ -36,23 +36,28 @@ function CoursesPage() {
     fetchCourses();
   }, []);
 
-  const handleEnroll = async (courseId) => {
+// In client/src/pages/CoursesPage.js
+
+const handleEnroll = async (courseId) => {
     const token = localStorage.getItem('token');
     if (!token) {
-      navigate('/login');
-      return;
+        navigate('/login');
+        return;
     }
     setEnrollmentStatus(prev => ({ ...prev, [courseId]: { message: 'Enrolling...', type: 'info' } }));
     try {
-      const response = await axios.post(`${API_URL}/api/enroll`, { courseId }, { headers: { Authorization: `Bearer ${token}` } });
-      setEnrollmentStatus(prev => ({ ...prev, [courseId]: { message: response.data.message, type: 'success' } }));
-      // ✨ Instantly update the global state after a successful enrollment
-      addEnrollment(courseId);
+        const response = await axios.post(
+            // ✅ THE FIX: Move the courseId into the URL path
+            `${API_URL}/api/enrollments/${courseId}`, 
+            {}, // The body is now an empty object
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setEnrollmentStatus(prev => ({ ...prev, [courseId]: { message: response.data.message, type: 'success' } }));
+        addEnrollment(courseId);
     } catch (err) {
-      setEnrollmentStatus(prev => ({ ...prev, [courseId]: { message: err.response?.data?.message || `Failed to enroll.`, type: 'danger' } }));
+        setEnrollmentStatus(prev => ({ ...prev, [courseId]: { message: err.response?.data?.message || `Failed to enroll.`, type: 'danger' } }));
     }
-  };
-
+};
   if (loading) return <Container className="text-center my-5"><Spinner animation="border" /></Container>;
   if (error) return <Container className="my-5"><Alert variant="danger">{error}</Alert></Container>;
 

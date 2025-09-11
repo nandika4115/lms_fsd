@@ -1,39 +1,67 @@
-import React from 'react';
-import { Container, Form, Button, Card, Image, Alert, Row, Col } from 'react-bootstrap';
+import React, { useEffect } from 'react';
+import { Container, Form, Button, Card, Image, Alert, Row, Col, Spinner } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 
 const API_URL = "http://localhost:5000";
 
-function CreateCoursePage() {
-    const { register, handleSubmit, watch, formState: { errors } } = useForm();
+function EditCoursePage() {
+    // Get the course ID from the URL
+    const { id } = useParams();
+    const { register, handleSubmit, watch, reset, formState: { errors } } = useForm();
     const [serverError, setServerError] = React.useState('');
+    const [loading, setLoading] = React.useState(true);
     const navigate = useNavigate();
     
     // Watch the thumbnail URL field to show a live preview
     const thumbnailUrl = watch('thumbnail_url');
 
+    // Fetch existing course data when the component loads
+    useEffect(() => {
+        const fetchCourseData = async () => {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await axios.get(`${API_URL}/api/courses/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                // Use the 'reset' function from react-hook-form to populate the form
+                reset(response.data);
+            } catch (err) {
+                setServerError("Could not load course data.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchCourseData();
+    }, [id, reset]);
+
+    // Handle the form submission to UPDATE the course
     const onSubmit = async (data) => {
         const token = localStorage.getItem('token');
         try {
-            await axios.post(`${API_URL}/api/courses`, data, {
+            await axios.put(`${API_URL}/api/courses/${id}`, data, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             navigate('/dashboard'); // Redirect to dashboard on success
         } catch (err) {
-            setServerError(err.response?.data?.message || 'Failed to create course.');
+            setServerError(err.response?.data?.message || 'Failed to update course.');
         }
     };
+
+    if (loading) {
+        return <Container className="text-center my-5"><Spinner animation="border" /></Container>;
+    }
 
     return (
         <Container className="my-5">
              <Row className="justify-content-center">
                 <Col md={8}>
                     <Card className="p-4 shadow-sm">
-                        <h2 className="mb-4">Create a New Course</h2>
+                        <h2 className="mb-4">Edit Course</h2>
                         {serverError && <Alert variant="danger">{serverError}</Alert>}
                         <Form onSubmit={handleSubmit(onSubmit)}>
+                            {/* The form is identical to the Create Course page */}
                             <Form.Group className="mb-3">
                                 <Form.Label>Course Title</Form.Label>
                                 <Form.Control type="text" {...register("title", { required: "Title is required." })} />
@@ -45,7 +73,7 @@ function CreateCoursePage() {
                                 <Form.Control as="textarea" rows={4} {...register("description", { required: "Description is required." })} />
                                 {errors.description && <p className="text-danger mt-1 small">{errors.description.message}</p>}
                             </Form.Group>
-
+                            
                              <Row>
                                 <Col md={6}>
                                     <Form.Group className="mb-3">
@@ -80,7 +108,7 @@ function CreateCoursePage() {
                                 </div>
                             )}
 
-                            <Button variant="primary" type="submit">Create Course as Draft</Button>
+                            <Button variant="primary" type="submit">Save Changes</Button>
                         </Form>
                     </Card>
                 </Col>
@@ -89,4 +117,4 @@ function CreateCoursePage() {
     );
 }
 
-export default CreateCoursePage;
+export default EditCoursePage;

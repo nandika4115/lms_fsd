@@ -19,8 +19,8 @@ export const AuthProvider = ({ children }) => {
           const response = await axios.get(`${API_URL}/api/enrollments`, {
             headers: { Authorization: `Bearer ${token}` }
           });
-          setEnrolledCourseIds(new Set(response.data));
-        } catch (error) {
+// After: First, map the array to get just the IDs, then create the Set
+          setEnrolledCourseIds(new Set(response.data.map(course => course.id)));        } catch (error) {
           console.error("Could not fetch user enrollments:", error);
         }
       } else {

@@ -42,21 +42,34 @@ function CourseDetail() {
     fetchCourse();
   }, [id]);
 
-  const handleEnroll = async () => {
+const handleEnroll = async () => {
+    // This part is perfect, we keep it.
     const token = localStorage.getItem('token');
     if (!token) {
-      navigate('/login');
-      return;
+        navigate('/login');
+        return;
     }
-    try {
-      const response = await axios.post(`${API_URL}/api/enroll`, { courseId: id }, { headers: { Authorization: `Bearer ${token}` } });
-      setEnrollmentStatus({ message: response.data.message, type: 'success' });
-      addEnrollment(parseInt(id)); // Instantly update the global state
-    } catch (err) {
-      setEnrollmentStatus({ message: err.response?.data?.message || "Enrollment failed.", type: 'danger' });
-    }
-  };
 
+    try {
+        // --- THIS IS THE ONLY LINE THAT CHANGES ---
+        const response = await axios.post(
+            // 1. Move the ID into the URL path with correct `${}` syntax
+            `${API_URL}/api/enrollments/${id}`, 
+            // 2. Make the request body an empty object
+            {}, 
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        // --- END OF CHANGE ---
+
+        // This part is perfect, we keep it.
+        setEnrollmentStatus({ message: response.data.message, type: 'success' });
+        addEnrollment(parseInt(id)); 
+
+    } catch (err) {
+        // This part is perfect, we keep it.
+        setEnrollmentStatus({ message: err.response?.data?.message || "Enrollment failed.", type: 'danger' });
+    }
+};
   if (loading) return <Container className="text-center my-5"><Spinner animation="border" /></Container>;
   if (error) return <Container className="my-5"><Alert variant="danger">{error}</Alert></Container>;
   if (!course) return null;

@@ -15,5 +15,26 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+// --- THIS IS THE NEW MIDDLEWARE ---
+// It identifies a user if a token is present but does NOT block the request if there isn't one.
+const authenticateOptional = (req, res, next) => {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
 
-module.exports = { authenticateToken, JWT_SECRET };
+    if (!token) {
+        // If there's no token, just proceed. req.user will be undefined.
+        return next();
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (!err) {
+            // If the token is valid, attach the user to the request.
+            req.user = user;
+        }
+        // Whether the token is valid or not, we proceed. 
+        // If invalid, req.user will remain undefined.
+        next();
+    });
+};
+
+module.exports = { authenticateToken, authenticateOptional };

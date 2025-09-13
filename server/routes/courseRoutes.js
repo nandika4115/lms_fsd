@@ -1,29 +1,26 @@
 const express = require("express");
 const router = express.Router();
 const courseController = require("../controllers/courseController");
-const { authenticateToken } = require("../middleware/authMiddleware");
+// Import both middleware functions from your updated file
+const { authenticateToken, authenticateOptional } = require("../middleware/authMiddleware");
 
-// --- Public Routes ---
-// GET all published courses
+// --- Public routes for the main courses page ---
 router.get("/", courseController.getCourses);
+router.get("/filters", courseController.getCourseFilters);
 
-// GET course filters (categories & levels)
-router.get("/filters", courseController.getCourseFilters);  // 👈 ADD THIS
+// --- THIS IS THE CRITICAL FIX ---
+// This route for a single course now uses the 'authenticateOptional' middleware.
+// It will now correctly identify logged-in users, which will solve the
+// "You must be enrolled" error, while still allowing guests to view the page.
+router.get("/:id", authenticateOptional, courseController.getCourseById);
 
-// GET a single course by ID
-router.get("/:id", courseController.getCourseById);
 
-// --- Instructor-Only Routes (Protected) ---
-// POST a new course
+// --- Instructor-only routes that require a strict login ---
 router.post("/", authenticateToken, courseController.createCourse);
-
-// PUT (update) a course's details
 router.put("/:id", authenticateToken, courseController.updateCourse);
-
-// DELETE a course
 router.delete("/:id", authenticateToken, courseController.deleteCourse);
-
-// PATCH (partially update) a course's status
 router.patch("/:id/status", authenticateToken, courseController.updateCourseStatus);
 
+
 module.exports = router;
+

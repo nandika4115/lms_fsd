@@ -17,6 +17,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import EditCoursePage from './pages/EditCoursePage';
 import EditProfilePage from './pages/EditProfilePage'; // 1. Import the new page
 import ManageCoursePage from './pages/ManageCoursePage';
+import LessonPage from './pages/LessonPage';
 
 // --- ✨ Sidebar (Offcanvas) Component (Updated Logic) ✨ ---
 function AppSidebar({ show, handleClose }) {
@@ -149,6 +150,7 @@ function AppContent() {
             <Route path="/courses/:id" element={<CourseDetail />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonPage />} />
             <Route element={<ProtectedRoute requiredRole="instructor" />}>
                 <Route path="/create-course" element={<CreateCoursePage />} />
                 <Route path="/edit-course/:id" element={<EditCoursePage />} /> 

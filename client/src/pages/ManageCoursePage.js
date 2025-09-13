@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Spinner, Alert, Form, Modal, ListGroup } from 'react-bootstrap';
-import { PencilSquare, Trash, PlayBtn, PlusCircle } from 'react-bootstrap-icons';
+import { PencilSquare, Trash, PlayBtn, PlusCircle, ArrowUp, ArrowDown } from 'react-bootstrap-icons';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
+// REMOVED: No longer need react-beautiful-dnd
 
 const API_URL = "http://localhost:5000";
 
-// --- A robust helper function to get the correct YouTube embed URL ---
+// (Helper functions like getYouTubeEmbedUrl and VideoPreviewModal remain the same)
 const getYouTubeEmbedUrl = (url) => {
     if (!url) return '';
     let videoId = '';
@@ -27,7 +28,6 @@ const getYouTubeEmbedUrl = (url) => {
     return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
 };
 
-// --- Video Preview Modal Component ---
 const VideoPreviewModal = ({ show, handleClose, videoUrl }) => {
     const embedUrl = getYouTubeEmbedUrl(videoUrl);
     return (
@@ -48,28 +48,29 @@ const VideoPreviewModal = ({ show, handleClose, videoUrl }) => {
     );
 };
 
-// --- Main Manage Course Page Component ---
+
 function ManageCoursePage() {
     const { id } = useParams();
-    const [course, setCourse] = useState(null);
-    const [lessons, setLessons] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [editingLesson, setEditingLesson] = useState(null);
-    
-    // --- NEW STATE TO CONTROL FORM VISIBILITY ---
-    const [isFormVisible, setIsFormVisible] = useState(false);
-
-    const [showPreview, setShowPreview] = useState(false);
-    const [previewUrl, setPreviewUrl] = useState('');
+    const [course, setCourse] = React.useState(null);
+    const [lessons, setLessons] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState('');
+    const [editingLesson, setEditingLesson] = React.useState(null);
+    const [isFormVisible, setIsFormVisible] = React.useState(false);
+    const [showPreview, setShowPreview] = React.useState(false);
+    const [previewUrl, setPreviewUrl] = React.useState('');
     const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm();
     
-    useEffect(() => {
+    // This state is no longer needed as we save on each click
+    // const [isOrderChanged, setIsOrderChanged] = React.useState(false);
+
+    React.useEffect(() => {
         const fetchCourseAndLessons = async () => {
             const token = localStorage.getItem('token');
             try {
                 const [courseRes, lessonsRes] = await Promise.all([
                     axios.get(`${API_URL}/api/courses/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
+                    // --- THIS LINE HAS BEEN FIXED ---
                     axios.get(`${API_URL}/api/lessons/course/${id}`, { headers: { Authorization: `Bearer ${token}` } })
                 ]);
                 setCourse(courseRes.data);
@@ -89,12 +90,12 @@ function ManageCoursePage() {
         try {
             if (editingLesson) {
                 await axios.put(`${API_URL}/api/lessons/${editingLesson.id}`, lessonData, { headers: { Authorization: `Bearer ${token}` } });
-                // --- FIX: Ensure the 'content' property is correctly updated in the state ---
                 setLessons(lessons.map(l => l.id === editingLesson.id ? { ...l, title: lessonData.title, content: lessonData.content_url } : l));
             } else {
-                const response = await axios.post(`${API_URL}/api/lessons/course/${id}`, lessonData, { headers: { Authorization: `Bearer ${token}` } });
-                // --- FIX: Ensure the new lesson object has a 'content' property ---
-                setLessons([...lessons, { id: response.data.lessonId, title: lessonData.title, content: lessonData.content_url, course_id: id }]);
+                // When a new lesson is added, re-fetch to get the correct order
+                await axios.post(`${API_URL}/api/lessons/course/${id}`, lessonData, { headers: { Authorization: `Bearer ${token}` } });
+                const lessonsRes = await axios.get(`${API_URL}/api/lessons/course/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+                setLessons(lessonsRes.data);
             }
             resetForm();
         } catch (err) {
@@ -114,23 +115,52 @@ function ManageCoursePage() {
         }
     };
 
+    // --- NEW: Function to handle moving a lesson up or down ---
+    const handleMoveLesson = async (lessonId, direction) => {
+        const token = localStorage.getItem('token');
+        const lessonIndex = lessons.findIndex(l => l.id === lessonId);
+
+        if ((direction === 'up' && lessonIndex === 0) || (direction === 'down' && lessonIndex === lessons.length - 1)) {
+            return; // Can't move first item up or last item down
+        }
+
+        // Optimistically update the UI for a fast user experience
+        const newLessons = [...lessons];
+        const targetIndex = direction === 'up' ? lessonIndex - 1 : lessonIndex + 1;
+        [newLessons[lessonIndex], newLessons[targetIndex]] = [newLessons[targetIndex], newLessons[lessonIndex]]; // Swap elements
+        setLessons(newLessons);
+
+        try {
+            // Send the full new order to the backend to be saved
+            const orderedLessonIds = newLessons.map(l => l.id);
+            await axios.put(`${API_URL}/api/lessons/course/${id}/order`, { orderedLessonIds }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+        } catch (err) {
+            // If the save fails, revert the UI and show an error
+            setLessons(lessons); // Revert to the original order
+            alert("Failed to save new order. Please try again.");
+        }
+    };
+
+
     const handleEditClick = (lesson) => {
         setEditingLesson(lesson);
         setValue("title", lesson.title);
         setValue("content_url", lesson.content);
-        setIsFormVisible(true); // --- Show the form when editing ---
+        setIsFormVisible(true);
     };
 
     const handleAddClick = () => {
         setEditingLesson(null);
         reset({ title: '', content_url: '' });
-        setIsFormVisible(true); // --- Show the form to add a new lesson ---
+        setIsFormVisible(true);
     };
 
     const resetForm = () => {
         setEditingLesson(null);
         reset({ title: '', content_url: '' });
-        setIsFormVisible(false); // --- Hide the form on cancel or after submit ---
+        setIsFormVisible(false);
     };
 
     const handlePreviewClick = (url) => {
@@ -144,22 +174,32 @@ function ManageCoursePage() {
     return (
         <Container className="my-5">
             <h1 className="mb-2">Manage Course: {course?.title}</h1>
-            <p className="text-muted mb-5">Add, edit, and manage your lessons below.</p>
+            <p className="text-muted mb-5">Add, edit, and reorder your lessons below.</p>
 
             <Row>
-                <Col md={isFormVisible ? 7 : 12}> {/* Make list full width if form is hidden */}
+                <Col md={isFormVisible ? 7 : 12}>
                     <Card>
                         <Card.Header as="h4" className="d-flex justify-content-between align-items-center">
                             <span>Course Lessons ({lessons.length})</span>
-                            {/* --- THIS IS THE RESTORED "ADD LESSON" BUTTON --- */}
                             <Button variant="primary" onClick={handleAddClick}>
                                 <PlusCircle className="me-2" /> Add Lesson
                             </Button>
                         </Card.Header>
                         <ListGroup variant="flush">
-                            {lessons.length > 0 ? lessons.map(lesson => (
+                            {lessons.length > 0 ? lessons.map((lesson, index) => (
                                 <ListGroup.Item key={lesson.id} className="d-flex justify-content-between align-items-center">
-                                    <span>{lesson.title}</span>
+                                    <div className="d-flex align-items-center">
+                                        {/* --- NEW: Up and Down Buttons --- */}
+                                        <div className="d-flex flex-column me-3">
+                                            <Button variant="link" size="sm" className="p-0 text-muted" onClick={() => handleMoveLesson(lesson.id, 'up')} disabled={index === 0}>
+                                                <ArrowUp />
+                                            </Button>
+                                            <Button variant="link" size="sm" className="p-0 text-muted" onClick={() => handleMoveLesson(lesson.id, 'down')} disabled={index === lessons.length - 1}>
+                                                <ArrowDown />
+                                            </Button>
+                                        </div>
+                                        <span>{lesson.title}</span>
+                                    </div>
                                     <div>
                                         <Button variant="outline-secondary" size="sm" className="me-2" onClick={() => handlePreviewClick(lesson.content)}>
                                             <PlayBtn /> Preview
@@ -179,7 +219,6 @@ function ManageCoursePage() {
                     </Card>
                 </Col>
 
-                {/* --- The form is now conditionally rendered --- */}
                 {isFormVisible && (
                     <Col md={5}>
                         <Card>

@@ -3,28 +3,18 @@ const router = express.Router();
 const lessonController = require("../controllers/lessonController");
 const { authenticateToken } = require("../middleware/authMiddleware");
 
-// --- GET all lessons for a specific course (ordered) ---
-// Used by the "Manage Course" page to list lessons.
+// --- Routes for Instructors to manage all lessons within a course ---
 router.get("/course/:courseId", authenticateToken, lessonController.getLessonsByCourse);
-
-// --- CREATE a new lesson for a specific course ---
-// Used by the "Manage Course" page to add a new lesson.
 router.post("/course/:courseId", authenticateToken, lessonController.addLesson);
+router.put("/course/:courseId/order", authenticateToken, lessonController.reorderLessons);
 
-// --- UPDATE the order of all lessons for a course ---
-// Used by the "Manage Course" page after drag-and-drop reordering.
-router.put("/course/:courseId/order", authenticateToken, lessonController.updateLessonOrder);
-
-// --- GET a single lesson by its own ID (for student viewing) ---
+// --- Routes for a single lesson (viewing, editing, deleting) ---
 router.get("/:lessonId", authenticateToken, lessonController.getLessonById);
-
-// --- UPDATE a single lesson's details ---
-// Used by the "Manage Course" page when editing a lesson.
 router.put("/:lessonId", authenticateToken, lessonController.updateLesson);
-
-// --- DELETE a single lesson ---
-// Used by the "Manage Course" page to delete a lesson.
 router.delete("/:lessonId", authenticateToken, lessonController.deleteLesson);
+
+// --- Route for Students to mark a lesson as complete ---
+router.post("/:lessonId/complete", authenticateToken, lessonController.markLessonComplete);
 
 module.exports = router;
 

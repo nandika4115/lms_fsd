@@ -78,3 +78,34 @@ exports.logout = (req, res) => {
     res.json({ message: "Logged out successfully" });
 };
 
+// Add this to your authController.js
+// In authController.js, add this function:
+exports.verifyToken = (req, res) => {
+    try {
+        if (req.user) {
+            res.json({
+                valid: true,
+                user: {
+                    id: req.user.id,
+                    username: req.user.username,
+                    email: req.user.email,
+                    role: req.user.role,
+                    exp: req.user.exp
+                }
+            });
+        } else {
+            res.status(401).json({ 
+                valid: false, 
+                message: 'Invalid token - no user data' 
+            });
+        }
+    } catch (error) {
+        console.error('Token verification error:', error);
+        res.status(401).json({ 
+            valid: false, 
+            message: 'Token verification failed' 
+        });
+    }
+};
+// Make sure to add this route to your authRoutes.js:
+// router.get('/verify', authenticateToken, authController.verifyToken);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
-import { Book, CodeSlash, Brush, CollectionPlay } from 'react-bootstrap-icons';
+import { Book, CodeSlash, Brush, CollectionPlay, CheckCircleFill } from 'react-bootstrap-icons';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
 
@@ -26,9 +26,16 @@ function CourseDetail() {
 
     useEffect(() => {
         const fetchCourse = async () => {
+            const token = localStorage.getItem('token');
             try {
                 setLoading(true);
-                const response = await axios.get(`${API_URL}/api/courses/${id}`);
+                // --- THIS IS THE FIX ---
+                // Add the Authorization header to the request so the server knows who you are.
+                // This allows it to send back correct lesson completion data.
+                const response = await axios.get(`${API_URL}/api/courses/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                // --- END OF FIX ---
                 setCourse(response.data);
             } catch (err) {
                 setError("Could not load course details.");
@@ -37,9 +44,8 @@ function CourseDetail() {
             }
         };
         fetchCourse();
-    }, [id]);
+    }, [id, isEnrolled]); // Also re-fetch if enrollment status changes
 
-    // This is the fully corrected enrollment handler
     const handleEnroll = async () => {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -49,14 +55,12 @@ function CourseDetail() {
         setEnrollmentStatus({ message: 'Enrolling...', type: 'info' });
         try {
             const response = await axios.post(
-                // The ID is now correctly in the URL path
-                `${API_URL}/api/enrollments/${id}`, 
-                // The request body is empty
-                {}, 
+                `${API_URL}/api/enrollments/${id}`,
+                {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setEnrollmentStatus({ message: response.data.message, type: 'success' });
-            addEnrollment(parseInt(id)); 
+            addEnrollment(parseInt(id));
         } catch (err) {
             setEnrollmentStatus({ message: err.response?.data?.message || "Enrollment failed.", type: 'danger' });
         }
@@ -70,49 +74,57 @@ function CourseDetail() {
         <div className="course-detail-page">
             <Container className="text-center py-5">
                 <h1 className="display-4 fw-bold">{course.title}</h1>
-                
-                {/* This line now correctly displays the instructor's name */}
                 <p className="lead text-muted">Taught by {course.instructor_name || 'a great instructor'}</p>
-
                 <p className="mt-4" style={{ maxWidth: '700px', margin: 'auto' }}>{course.description}</p>
                 
                 {user && user.role === 'student' && (
                     <div className="mt-4">
-                        {enrollmentStatus.message && (
-                            <Alert variant={enrollmentStatus.type} className="d-inline-block p-2">
-                                {enrollmentStatus.message}
-                            </Alert>
+                         {isEnrolled ? (
+                             <Button as={Link} to={`/courses/${id}/lessons/${course.lessons[0]?.id || ''}`} variant="success" size="lg">
+                                 Go to Course
+                             </Button>
+                        ) : (
+                           <>
+                            {enrollmentStatus.message && (
+                                <Alert variant={enrollmentStatus.type} className="d-inline-block p-2 me-2">
+                                    {enrollmentStatus.message}
+                                </Alert>
+                            )}
+                            <Button
+                                variant={enrollmentStatus.type === 'success' ? "success" : "primary"}
+                                size="lg"
+                                onClick={handleEnroll}
+                                disabled={enrollmentStatus.type === 'success'}
+                            >
+                                {enrollmentStatus.type === 'success' ? 'Enrolled' : 'Enroll Now'}
+                            </Button>
+                           </>
                         )}
-                        <Button
-                            variant={isEnrolled || enrollmentStatus.type === 'success' ? "success" : "primary"}
-                            size="lg"
-                            onClick={handleEnroll}
-                            disabled={isEnrolled || enrollmentStatus.type === 'success'}
-                        >
-                            {isEnrolled || enrollmentStatus.type === 'success' ? 'Enrolled' : 'Enroll Now'}
-                        </Button>
                     </div>
                 )}
             </Container>
 
             <div className="curriculum-section py-5 bg-light">
                 <Container>
-                    <h2 className="text-center fw-bold mb-5">What You'll Learn</h2>
+                    <h2 className="text-center fw-bold mb-5">Course Curriculum</h2>
                     <Row>
                         {course.lessons?.length > 0 ? (
                             course.lessons.map((lesson, index) => {
                                 const style = lessonCardStyles[index % lessonCardStyles.length];
                                 return (
-                                    <Col md={6} lg={3} key={lesson.id} className="mb-4">
-                                        <Card className="h-100 lesson-card border-0 shadow-sm" style={{ backgroundColor: style.color }}>
-                                            <Card.Body>
-                                                <div className="d-flex align-items-center mb-3">
-                                                    {style.icon}
-                                                    <span className="ms-2 text-muted fw-bold">Lesson {index + 1}</span>
-                                                </div>
-                                                <Card.Title as="h5" className="fw-bold">{lesson.title}</Card.Title>
-                                            </Card.Body>
-                                        </Card>
+                                    <Col md={6} lg={4} key={lesson.id} className="mb-4">
+                                        <Link to={`/courses/${id}/lessons/${lesson.id}`} className="text-decoration-none">
+                                            <Card className="h-100 lesson-card lesson-card-link border-0 shadow-sm" style={{ backgroundColor: style.color }}>
+                                                <Card.Body>
+                                                    <div className="d-flex align-items-center mb-3">
+                                                        {style.icon}
+                                                        <span className="ms-2 text-muted fw-bold">Lesson {index + 1}</span>
+                                                        {lesson.is_completed && <CheckCircleFill className="ms-auto text-success" />}
+                                                    </div>
+                                                    <Card.Title as="h5" className="fw-bold text-dark">{lesson.title}</Card.Title>
+                                                </Card.Body>
+                                            </Card>
+                                        </Link>
                                     </Col>
                                 );
                             })

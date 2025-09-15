@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Container, Card, Row, Col, Button, Spinner, Alert, Form, InputGroup } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { CodeSlash, Brush, GraphUp, Search } from 'react-bootstrap-icons';
+import { CodeSlash, Brush, GraphUp, Search, PlayCircleFill } from 'react-bootstrap-icons';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
-// Step 1: Import the custom hook we just created
 import { useEnrollment } from '../hooks/useEnrollment';
 
 const API_URL = "http://localhost:5000";
@@ -19,29 +18,24 @@ function CoursesPage() {
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    
-    // --- State for Filters and Search ---
     const [filters, setFilters] = useState({ categories: [], levels: [] });
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
     const [selectedLevel, setSelectedLevel] = useState('');
 
-    // Step 2: Use the hook to get the enrollment function and status object
     const { handleEnroll, enrollmentStatus } = useEnrollment();
     const { user, enrolledCourseIds } = useContext(AuthContext);
 
-    // --- Effect to fetch courses whenever a filter or search term changes ---
     useEffect(() => {
         const fetchCourses = async () => {
+            const token = localStorage.getItem('token'); // Get the token
             try {
                 setLoading(true);
-                // Pass the current filter state as URL parameters to the backend API
                 const response = await axios.get(`${API_URL}/api/courses`, {
-                    params: {
-                        search: searchTerm,
-                        category: selectedCategory,
-                        level: selectedLevel
-                    }
+                    params: { search: searchTerm, category: selectedCategory, level: selectedLevel },
+                    // --- THIS IS THE FIX ---
+                    // Send the token with the request so the server can calculate the resume link
+                    headers: { Authorization: `Bearer ${token}` } 
                 });
                 setCourses(response.data);
             } catch (err) {
@@ -50,27 +44,21 @@ function CoursesPage() {
                 setLoading(false);
             }
         };
-        // This "debounces" the search input. It waits 500ms after the user stops typing
-        // before making an API call, which prevents excessive requests.
-        const delayDebounceFn = setTimeout(() => {
-            fetchCourses();
-        }, 500);
-
+        const delayDebounceFn = setTimeout(() => { fetchCourses(); }, 500);
         return () => clearTimeout(delayDebounceFn);
-    }, [searchTerm, selectedCategory, selectedLevel]); // Re-run this effect when any filter changes
+    }, [searchTerm, selectedCategory, selectedLevel, user]); // Re-fetch if user logs in/out
 
-    // --- Effect to fetch the dynamic filter options (categories and levels) ---
     useEffect(() => {
         const fetchFilters = async () => {
             try {
                 const response = await axios.get(`${API_URL}/api/courses/filters`);
-                setFilters(response.data);
+                setFilters(response.data || { categories: [], levels: [] });
             } catch (err) {
                 console.error("Could not fetch filters:", err);
             }
         };
         fetchFilters();
-    }, []); // The empty array [] means this effect runs only once when the page loads
+    }, []);
 
     if (error) return <Container className="my-5"><Alert variant="danger">{error}</Alert></Container>;
 
@@ -82,34 +70,11 @@ function CoursesPage() {
                     <p className="lead text-muted">Find your next learning opportunity from our expert-led courses.</p>
                 </div>
 
-                {/* --- Search and Filter UI --- */}
                 <Card className="p-3 mb-5 shadow-sm">
                     <Row className="g-3 align-items-center">
-                        <Col lg={6} md={12}>
-                            <InputGroup>
-                                <InputGroup.Text><Search /></InputGroup.Text>
-                                <Form.Control
-                                    type="text"
-                                    placeholder="Search by course title..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </InputGroup>
-                        </Col>
-                        <Col lg={3} md={6}>
-                            <Form.Select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
-                                <option value="">All Categories</option>
-                                {/* ✅ FIX: Added optional chaining (?.) to prevent errors if filters.categories is not available yet */}
-                                {filters?.categories?.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                            </Form.Select>
-                        </Col>
-                        <Col lg={3} md={6}>
-                            <Form.Select value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)}>
-                                <option value="">All Levels</option>
-                                {/* ✅ FIX: Added optional chaining (?.) here as well for safety */}
-                                {filters?.levels?.map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
-                            </Form.Select>
-                        </Col>
+                        <Col lg={6} md={12}><InputGroup><InputGroup.Text><Search /></InputGroup.Text><Form.Control type="text" placeholder="Search by course title..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></InputGroup></Col>
+                        <Col lg={3} md={6}><Form.Select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}><option value="">All Categories</option>{filters.categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}</Form.Select></Col>
+                        <Col lg={3} md={6}><Form.Select value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)}><option value="">All Levels</option>{filters.levels.map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}</Form.Select></Col>
                     </Row>
                 </Card>
 
@@ -122,6 +87,11 @@ function CoursesPage() {
                             const status = enrollmentStatus[course.id];
                             const style = cardStyles[index % cardStyles.length];
 
+                            // --- THIS IS THE NEW LOGIC FOR THE RESUME BUTTON LINK ---
+                            const resumeLink = course.resumeLessonId
+                                ? `/courses/${course.id}/lessons/${course.resumeLessonId}`
+                                : `/courses/${course.id}`; // Fallback to the course detail page
+
                             return (
                                 <Col md={6} lg={4} key={course.id} className="mb-4">
                                     <Card className="h-100 course-card-new" style={{ backgroundColor: style.color }}>
@@ -133,12 +103,13 @@ function CoursesPage() {
                                             <div className="mt-auto">
                                                 {isEnrolled ? (
                                                     <div>
-                                                        {/* ✅ FIX: Changed variant to "success" for a solid green color. */}
-                                                        <Button variant="success" className="w-100 mb-2" disabled>Enrolled</Button>
-                                                        {/* ✅ FIX: Restored the View and Resume buttons. */}
-                                                        <div className="d-flex">
-                                                            <Button as={Link} to={`/courses/${course.id}`} variant="dark" className="course-card-btn flex-grow-1 me-1">View</Button>
-                                                            <Button as={Link} to={`/courses/${course.id}/resume`} variant="dark" className="course-card-btn flex-grow-1 ms-1">Resume</Button>
+                                                        <Button variant="success" className="w-100 mb-2" style={{ backgroundColor: '#28a745', borderColor: '#28a745' }} disabled>Enrolled</Button>
+                                                        <div className="d-flex gap-2">
+                                                            <Button as={Link} to={`/courses/${course.id}`} variant="dark" className="w-50">View</Button>
+                                                            {/* This button now uses the smart resumeLink */}
+                                                            <Button as={Link} to={resumeLink} variant="dark" className="w-50">
+                                                                <PlayCircleFill className="me-1"/> Resume
+                                                            </Button>
                                                         </div>
                                                     </div>
                                                 ) : (
@@ -165,7 +136,7 @@ function CoursesPage() {
                                 </Col>
                             );
                         }) : (
-                            <Col><Alert variant="info">No courses found matching your criteria. Try adjusting your search or filters.</Alert></Col>
+                            <Col><Alert variant="info">No courses found matching your criteria.</Alert></Col>
                         )}
                     </Row>
                 )}

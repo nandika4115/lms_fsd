@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
-import { Book, CodeSlash, Brush, CollectionPlay, CheckCircleFill } from 'react-bootstrap-icons';
+import { Book, CodeSlash, Brush, CollectionPlay, CheckCircleFill, PlayCircleFill } from 'react-bootstrap-icons';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
 
@@ -29,13 +29,10 @@ function CourseDetail() {
             const token = localStorage.getItem('token');
             try {
                 setLoading(true);
-                // --- THIS IS THE FIX ---
-                // Add the Authorization header to the request so the server knows who you are.
-                // This allows it to send back correct lesson completion data.
+                // Send the token with the request to get correct lesson data
                 const response = await axios.get(`${API_URL}/api/courses/${id}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                // --- END OF FIX ---
                 setCourse(response.data);
             } catch (err) {
                 setError("Could not load course details.");
@@ -44,7 +41,7 @@ function CourseDetail() {
             }
         };
         fetchCourse();
-    }, [id, isEnrolled]); // Also re-fetch if enrollment status changes
+    }, [id, isEnrolled]); // Re-fetch if enrollment status changes
 
     const handleEnroll = async () => {
         const token = localStorage.getItem('token');
@@ -70,6 +67,12 @@ function CourseDetail() {
     if (error) return <Container className="my-5"><Alert variant="danger">{error}</Alert></Container>;
     if (!course) return null;
 
+    // Create the smart resume link using the data from the backend.
+    // It falls back gracefully if there are no lessons yet.
+    const resumeLink = course.resumeLessonId 
+        ? `/courses/${id}/lessons/${course.resumeLessonId}`
+        : (course.lessons && course.lessons.length > 0 ? `/courses/${id}/lessons/${course.lessons[0].id}` : '#');
+
     return (
         <div className="course-detail-page">
             <Container className="text-center py-5">
@@ -80,10 +83,13 @@ function CourseDetail() {
                 {user && user.role === 'student' && (
                     <div className="mt-4">
                          {isEnrolled ? (
-                             <Button as={Link} to={`/courses/${id}/lessons/${course.lessons[0]?.id || ''}`} variant="success" size="lg">
-                                 Go to Course
+                             // This is the new, smart "Resume" button
+                             <Button as={Link} to={resumeLink} variant="success" size="lg">
+                                 <PlayCircleFill className="me-2" />
+                                 {course.resumeLessonId ? 'Resume Course' : 'Start Course'}
                              </Button>
                         ) : (
+                           // The non-enrolled UI remains the same
                            <>
                             {enrollmentStatus.message && (
                                 <Alert variant={enrollmentStatus.type} className="d-inline-block p-2 me-2">

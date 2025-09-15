@@ -1,6 +1,6 @@
 const db = require("../config/db");
 
-// --- Get All Public Courses (with Search, Filtering, and Resume Logic) ---
+// --- UPDATED: Get All Public Courses (with Search, Filtering, and Resume Logic) ---
 exports.getCourses = (req, res) => {
     const studentId = req.user?.id; // Safely get the user ID if they are logged in
     const { search, category, level } = req.query;
@@ -52,7 +52,7 @@ exports.getCourses = (req, res) => {
     });
 };
 
-// --- Get Dynamic Filter Options ---
+// --- NEW: Get Dynamic Filter Options ---
 exports.getCourseFilters = (req, res) => {
     const categoriesQuery = "SELECT DISTINCT category FROM courses WHERE status = 'published' AND category IS NOT NULL AND category != '' ORDER BY category ASC";
     const levelsQuery = "SELECT DISTINCT level FROM courses WHERE status = 'published' AND level IS NOT NULL AND level != '' ORDER BY level ASC";
@@ -70,7 +70,7 @@ exports.getCourseFilters = (req, res) => {
     });
 };
 
-// --- Get a Single Course by ID (with Secure Lesson Content) ---
+// --- UPDATED: Get a Single Course by ID (with Secure Lesson Content and correct Resume Logic) ---
 exports.getCourseById = (req, res) => {
     const courseId = parseInt(req.params.id, 10);
     const studentId = req.user?.id;
@@ -127,8 +127,11 @@ exports.getCourseById = (req, res) => {
                         is_completed: completedLessonIds.has(lesson.id)
                     }));
 
+                    // Find the first lesson that is not completed.
                     const firstUncompletedLesson = lessonsWithStatus.find(l => !l.is_completed);
-                    courseData.resumeLessonId = firstUncompletedLesson ? firstUncompletedLesson.id : (allLessons[0]?.id || null);
+                    // If one is found, set its ID. If not (course is complete), set it to null.
+                    courseData.resumeLessonId = firstUncompletedLesson ? firstUncompletedLesson.id : null;
+                    
                     courseData.lessons = lessonsWithStatus;
                     res.json(courseData);
                 });

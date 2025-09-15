@@ -18,6 +18,7 @@ import EditCoursePage from './pages/EditCoursePage';
 import EditProfilePage from './pages/EditProfilePage'; // 1. Import the new page
 import ManageCoursePage from './pages/ManageCoursePage';
 import LessonPage from './pages/LessonPage';
+import CertificatePage from './pages/CertificatePage';
 
 // --- ✨ Sidebar (Offcanvas) Component (Updated Logic) ✨ ---
 function AppSidebar({ show, handleClose }) {
@@ -151,6 +152,7 @@ function AppContent() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonPage />} />
+            <Route path="/courses/:courseId/certificate" element={<CertificatePage />} />
             <Route element={<ProtectedRoute requiredRole="instructor" />}>
                 <Route path="/create-course" element={<CreateCoursePage />} />
                 <Route path="/edit-course/:id" element={<EditCoursePage />} /> 

@@ -117,13 +117,51 @@ const StudentDashboard = ({ data }) => {
 
 
 // --- The Final, Upgraded Instructor Dashboard Component ---
+// --- The Final, Upgraded Instructor Dashboard Component ---
 const InstructorDashboard = ({ data }) => {
     const [courses, setCourses] = useState(data);
 
     useEffect(() => { setCourses(data); }, [data]);
 
-    const handleDelete = async (courseId) => { /* Your existing delete logic */ };
-    const handleStatusToggle = async (courseId, currentStatus) => { /* Your existing status toggle logic */ };
+    // Add these missing handler functions
+    const handleDelete = async (courseId) => {
+        const token = localStorage.getItem('token');
+        if (!window.confirm('Are you sure you want to delete this course?')) return;
+        
+        try {
+            await axios.delete(`${API_URL}/api/courses/${courseId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            // Remove the deleted course from state
+            setCourses(prev => prev.filter(course => course.course_id !== courseId));
+            alert('Course deleted successfully');
+        } catch (error) {
+            console.error('Delete error:', error);
+            alert('Failed to delete course');
+        }
+    };
+
+    const handleStatusToggle = async (courseId, currentStatus) => {
+        const token = localStorage.getItem('token');
+        const newStatus = currentStatus === 'published' ? 'draft' : 'published';
+        
+        try {
+            await axios.patch(`${API_URL}/api/courses/${courseId}/status`, 
+                { status: newStatus },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            // Update the course status in state
+            setCourses(prev => prev.map(course => 
+                course.course_id === courseId 
+                    ? { ...course, status: newStatus }
+                    : course
+            ));
+            alert(`Course ${newStatus === 'published' ? 'published' : 'unpublished'} successfully`);
+        } catch (error) {
+            console.error('Status update error:', error);
+            alert('Failed to update course status');
+        }
+    };
 
     const totalCourses = courses.length;
     const totalEnrollments = courses.reduce((sum, course) => sum + (course.enrollment_count || 0), 0);
@@ -155,6 +193,14 @@ const InstructorDashboard = ({ data }) => {
                                 <Card.Img variant="top" src={course.thumbnail_url || 'https://placehold.co/600x400'} style={{ height: '180px', objectFit: 'cover' }} />
                                 <Card.Body>
                                     <Card.Title as="h5" className="fw-bold">{course.course_title}</Card.Title>
+                                    
+                                    {/* Status Badge */}
+                                    <div className="mb-2">
+                                        <span className={`badge ${course.status === 'published' ? 'bg-success' : 'bg-secondary'}`}>
+                                            {course.status === 'published' ? 'Published' : 'Draft'}
+                                        </span>
+                                    </div>
+                                    
                                     <div className="d-flex justify-content-between text-muted small mb-2">
                                         <span><PeopleFill className="me-1" /> {course.enrollment_count} Enrolled</span>
                                         <span><PatchCheckFill className="me-1" /> {course.completion_count} Completed</span>
@@ -162,8 +208,37 @@ const InstructorDashboard = ({ data }) => {
                                     <ProgressBar now={completionRate} label={`${Math.round(completionRate)}%`} variant="success" style={{height: '10px'}}/>
                                 </Card.Body>
                                 <Card.Footer className="bg-white border-0 p-3">
+                                    {/* Updated: Multiple action buttons */}
                                     <div className="d-grid gap-2">
-                                        <Button as={Link} to={`/manage-course/${course.course_id}`} variant="primary">Manage</Button>
+                                        <Button as={Link} to={`/manage-course/${course.course_id}`} variant="primary" size="sm">
+                                            Manage Lessons
+                                        </Button>
+                                        <div className="d-flex gap-2">
+                                            <Button 
+                                                as={Link} 
+                                                to={`/edit-course/${course.course_id}`} 
+                                                variant="outline-secondary" 
+                                                size="sm"
+                                                className="flex-fill"
+                                            >
+                                                Edit
+                                            </Button>
+                                            <Button 
+                                                onClick={() => handleStatusToggle(course.course_id, course.status)}
+                                                variant={course.status === 'published' ? 'outline-warning' : 'outline-success'}
+                                                size="sm"
+                                                className="flex-fill"
+                                            >
+                                                {course.status === 'published' ? 'Unpublish' : 'Publish'}
+                                            </Button>
+                                        </div>
+                                        <Button 
+                                            onClick={() => handleDelete(course.course_id)}
+                                            variant="outline-danger" 
+                                            size="sm"
+                                        >
+                                            Delete
+                                        </Button>
                                     </div>
                                 </Card.Footer>
                             </Card>
@@ -174,7 +249,6 @@ const InstructorDashboard = ({ data }) => {
         </div>
     );
 };
-
 
 // --- Main Dashboard Page Component (No changes needed) ---
 function Dashboard() {

@@ -14,6 +14,11 @@ import AuthContext from './context/AuthContext';
 import CreateCoursePage from './pages/CreateCoursePage';
 // import ManageCoursePage from './pages/ManageCoursePage';
 import ProtectedRoute from './components/ProtectedRoute';
+import EditCoursePage from './pages/EditCoursePage';
+import EditProfilePage from './pages/EditProfilePage'; // 1. Import the new page
+import ManageCoursePage from './pages/ManageCoursePage';
+import LessonPage from './pages/LessonPage';
+import CertificatePage from './pages/CertificatePage';
 
 // --- ✨ Sidebar (Offcanvas) Component (Updated Logic) ✨ ---
 function AppSidebar({ show, handleClose }) {
@@ -95,8 +100,8 @@ function AppNavbar() {
                       <Button variant="danger" onClick={handleLogout} className="me-3">Logout</Button>
                       <Link to="/profile">
                           <Image 
-                              src={user.profile_image_url || `https://placehold.co/40x40/FFFFFF/004D40?text=${user.name.charAt(0)}`} 
-                              alt={`${user.name}'s profile`}
+                              src={user.profile_image_url || `https://placehold.co/40x40/FFFFFF/004D40?text=${user.username.charAt(0)}`} 
+                                                           alt={`${user.username}'s profile`}
                               className="profile-avatar"
                           />
                       </Link>
@@ -146,9 +151,14 @@ function AppContent() {
             <Route path="/courses/:id" element={<CourseDetail />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonPage />} />
+            <Route path="/courses/:courseId/certificate" element={<CertificatePage />} />
             <Route element={<ProtectedRoute requiredRole="instructor" />}>
                 <Route path="/create-course" element={<CreateCoursePage />} />
+                <Route path="/edit-course/:id" element={<EditCoursePage />} /> 
+                <Route path="/manage-course/:id" element={<ManageCoursePage />} />
             </Route>
+            <Route path="/profile/edit" element={<EditProfilePage />}/>
         </Routes>
       </main>
       {showNavAndFooter && <AppFooter />}

@@ -1,99 +1,92 @@
-import React, { useState } from 'react';
-import { Container, Form, Button, Alert, Card, Row, Col } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Container, Form, Button, Card, Image, Alert, Row, Col } from 'react-bootstrap';
+import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const API_URL = "http://localhost:5000";
 
 function CreateCoursePage() {
-  const [formData, setFormData] = useState({ title: '', description: '' });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const navigate = useNavigate();
+    const { register, handleSubmit, watch, formState: { errors } } = useForm();
+    const [serverError, setServerError] = React.useState('');
+    const navigate = useNavigate();
+    
+    // Watch the thumbnail URL field to show a live preview
+    const thumbnailUrl = watch('thumbnail_url');
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+    const onSubmit = async (data) => {
+        const token = localStorage.getItem('token');
+        try {
+            await axios.post(`${API_URL}/api/courses`, data, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            navigate('/dashboard'); // Redirect to dashboard on success
+        } catch (err) {
+            setServerError(err.response?.data?.message || 'Failed to create course.');
+        }
+    };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError("You must be logged in to create a course.");
-      return;
-    }
+    return (
+        <Container className="my-5">
+             <Row className="justify-content-center">
+                <Col md={8}>
+                    <Card className="p-4 shadow-sm">
+                        <h2 className="mb-4">Create a New Course</h2>
+                        {serverError && <Alert variant="danger">{serverError}</Alert>}
+                        <Form onSubmit={handleSubmit(onSubmit)}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Course Title</Form.Label>
+                                <Form.Control type="text" {...register("title", { required: "Title is required." })} />
+                                {errors.title && <p className="text-danger mt-1 small">{errors.title.message}</p>}
+                            </Form.Group>
 
-    try {
-      const response = await axios.post(
-        `${API_URL}/api/courses`,
-        formData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setSuccess(`${response.data.message} You will be redirected to the dashboard.`);
-      
-      // Redirect back to the dashboard after a short delay
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
+                            <Form.Group className="mb-3">
+                                <Form.Label>Description</Form.Label>
+                                <Form.Control as="textarea" rows={4} {...register("description", { required: "Description is required." })} />
+                                {errors.description && <p className="text-danger mt-1 small">{errors.description.message}</p>}
+                            </Form.Group>
 
-    } catch (err) {
-      console.error("Course creation failed:", err);
-      setError(err.response?.data?.message || "An error occurred while creating the course.");
-    }
-  };
+                             <Row>
+                                <Col md={6}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label>Category</Form.Label>
+                                        <Form.Control type="text" {...register("category", { required: "Category is required." })} />
+                                        {errors.category && <p className="text-danger mt-1 small">{errors.category.message}</p>}
+                                    </Form.Group>
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label>Level</Form.Label>
+                                        <Form.Select {...register("level", { required: "Level is required." })}>
+                                            <option value="">Select Level...</option>
+                                            <option value="Beginner">Beginner</option>
+                                            <option value="Intermediate">Intermediate</option>
+                                            <option value="Advanced">Advanced</option>
+                                        </Form.Select>
+                                        {errors.level && <p className="text-danger mt-1 small">{errors.level.message}</p>}
+                                    </Form.Group>
+                                </Col>
+                            </Row>
 
-  return (
-    <Container className="my-5">
-      <Row className="justify-content-center">
-        <Col md={8} lg={6}>
-          <Card className="p-4">
-            <h1 className="text-center mb-4">Create a New Course</h1>
-            <Form onSubmit={handleSubmit}>
-              {error && <Alert variant="danger">{error}</Alert>}
-              {success && <Alert variant="success">{success}</Alert>}
+                            <Form.Group className="mb-3">
+                                <Form.Label>Thumbnail Image URL</Form.Label>
+                                <Form.Control type="text" placeholder="https://example.com/image.jpg" {...register("thumbnail_url")} />
+                            </Form.Group>
+                            
+                            {thumbnailUrl && (
+                                <div className="mb-3 text-center">
+                                    <p className="mb-1 text-muted">Image Preview:</p>
+                                    <Image src={thumbnailUrl} thumbnail style={{ maxWidth: '250px' }} />
+                                </div>
+                            )}
 
-              <Form.Group className="mb-3">
-                <Form.Label>Course Title</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="title"
-                  placeholder="e.g., Introduction to React"
-                  value={formData.title}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Course Description</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={4}
-                  name="description"
-                  placeholder="Describe what students will learn in this course."
-                  value={formData.description}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
-
-              <div className="d-grid gap-2">
-                <Button variant="primary" type="submit">
-                  Create Course
-                </Button>
-                <Button as={Link} to="/dashboard" variant="secondary">
-                  Cancel
-                </Button>
-              </div>
-            </Form>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
-  );
+                            <Button variant="primary" type="submit">Create Course as Draft</Button>
+                        </Form>
+                    </Card>
+                </Col>
+            </Row>
+        </Container>
+    );
 }
 
 export default CreateCoursePage;
-

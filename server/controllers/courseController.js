@@ -107,9 +107,6 @@ exports.getCourseFilters = (req, res) => {
         });
     });
 };
-
-
-
 // --- Get Single Course by ID ---
 exports.getCourseById = async (req, res) => {
     try {

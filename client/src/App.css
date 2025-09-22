@@ -140,9 +140,123 @@ footer#footer-contact .copyright-text {
 }
 
 /* --- ✨ Styling for Enrolled Button on Course Cards ✨ --- */
+/* --- Course Card Styling (Compact + Old Width) --- */
+.course-card-new {
+  max-width: 360px;      /* wider than before */
+  min-height: 280px;     /* shorter card height */
+  border-radius: 15px !important;
+  position: relative;
+  margin: auto;
+  padding-top: 15px;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.course-card-new:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+.course-card-new img {
+  border-radius: 12px;
+  width: 95% !important;
+  height: 150px !important;   /* increased from 100px → 130px */
+  object-fit: cover;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.13);
+  z-index: 10;
+}
+
+.course-card-new .card-body {
+  margin-top: 145px;  /* adjusted for smaller image */
+  padding: 0.6rem;
+  text-align: left;
+}
+
+/* Title */
+.course-card-title {
+  color: #343a40;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+/* Description */
+.course-card-text.truncated {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 4.2em;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: #6c757d;
+  margin-bottom: 0.3rem;
+}
+
+.course-card-text.expanded {
+  display: block;
+  max-height: none;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: #6c757d;
+  margin-bottom: 0.3rem;
+
+}
+
+/* Read More button aligned right */
+.read-more-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0rem;
+}
+
+.read-more-btn {
+  font-size: 0.8rem;
+  color: #007bff !important;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.read-more-btn:hover {
+  color: #0056b3 !important;
+}
+
+/* Buttons */
+.course-card-new .btn-dark {
+  background-color: #222 !important;
+  color: #fff !important;
+  border: none !important;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.course-card-new .btn-dark:hover {
+  background-color: #333 !important;
+  color: #cde6cd !important;
+}
+
+.course-card-new .btn-success,
+.course-card-new .enrolled-btn {
+  background-color: #116611 !important;
+  border: none !important;
+  color: #fff !important;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.course-card-new .btn-success:hover {
+  background-color: #0d4d0d !important;
+  color: #d1f5d1 !important;
+}
+
 .enrolled-btn {
-    font-weight: 500 !important;
-    cursor: default !important; /* Make it look non-clickable */
-    opacity: 1 !important; /* Ensure it's fully visible */
+  font-weight: 600 !important;
+  cursor: default !important;
+  opacity: 1 !important;
 }
 

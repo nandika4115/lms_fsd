@@ -1,8 +1,9 @@
 const db = require("../config/db");
 // --- Get All Public Courses (SIMPLE VERSION) ---
-// --- Get All Public Courses (WITH ENHANCED DEBUGGING) ---
+// --- Get All Public Courses (FINAL VERSION) ---
 exports.getCourses = (req, res) => {
     const studentId = req.user?.id;
+    console.log("--- INSIDE GETCOURSES --- User ID found on request:", studentId);
     const { search, category, level } = req.query;
 
     let selectClause = "SELECT c.*";
@@ -11,17 +12,15 @@ exports.getCourses = (req, res) => {
     const queryParams = [];
 
     if (studentId) {
+        // This LEFT JOIN logic correctly finds the next lesson to resume
         selectClause += `, (
             SELECT l.id
             FROM lessons l
-            WHERE 
-                l.course_id = c.id 
-                AND 
-                l.id NOT IN (SELECT lc.lesson_id FROM lesson_completions lc WHERE lc.student_id = $1)
-            ORDER BY 
-                COALESCE(l.lesson_order, l.id) ASC
+            LEFT JOIN lesson_completions lc ON l.id = lc.lesson_id AND lc.student_id = $1
+            WHERE l.course_id = c.id AND lc.lesson_id IS NULL
+            ORDER BY COALESCE(l.lesson_order, l.id) ASC
             LIMIT 1
-        ) as resumeLessonId`;
+        ) as "resumeLessonId"`; // Use quotes to preserve casing
         queryParams.push(studentId);
     }
 
@@ -40,9 +39,6 @@ exports.getCourses = (req, res) => {
 
     const finalQuery = `${selectClause} ${fromClause} WHERE ${whereClauses.join(' AND ')}`;
 
-    console.log("DEBUG: Executing getCourses query:", finalQuery);
-    console.log("DEBUG: Query parameters:", queryParams);
-
     db.query(finalQuery, queryParams, (err, results) => {
         if (err) {
             console.error("FATAL: GET COURSES SQL ERROR:", err.stack);
@@ -52,12 +48,9 @@ exports.getCourses = (req, res) => {
     });
 };
 
-// --- Get Dynamic Filter Options (WITH ENHANCED DEBUGGING) ---
-// --- Get Dynamic Filter Options (WITH ENUM FIX) ---
+// --- Get Dynamic Filter Options (FINAL VERSION) ---
 exports.getCourseFilters = (req, res) => {
     const categoriesQuery = "SELECT DISTINCT category FROM courses WHERE status = 'published' AND category IS NOT NULL AND category != '' ORDER BY category ASC";
-    
-    // FIX is in the line below: level::text != ''
     const levelsQuery = "SELECT DISTINCT level FROM courses WHERE status = 'published' AND level IS NOT NULL AND level::text != '' ORDER BY level ASC";
 
     let filters = {};
@@ -77,8 +70,10 @@ exports.getCourseFilters = (req, res) => {
             res.json(filters);
         });
     });
-};// ... keep all your other existing functions unchanged
+};
 
+// --- (Your other functions like getCourseById, createCourse, etc., go here) ---
+// Make sure the rest of your functions from your original file are also present.
 // --- UPDATED: Get a Single Course by ID (with Secure Lesson Content and correct Resume Logic) ---
 exports.getCourseById = (req, res) => {
     const courseId = parseInt(req.params.id, 10);

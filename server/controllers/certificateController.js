@@ -100,6 +100,6 @@ exports.getCertificate = (req, res) => {
         
         // PostgreSQL: Check .rows array length and access first row
         if (results.rows.length === 0) return res.status(404).json({ message: "Certificate not found." });
-        res.json(results.rows);
+        res.json(results.rows[0]);
     });
 };

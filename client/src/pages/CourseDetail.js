@@ -22,18 +22,34 @@ function CourseDetail() {
     const [hasCertificate, setHasCertificate] = useState(false);
     const { user, enrolledCourseIds } = useContext(AuthContext);
     const navigate = useNavigate();
+
     const isEnrolled = enrolledCourseIds.has(parseInt(id));
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
         let isMounted = true;
-
-        const fetchCourse = async () => {
+        const fetchAllData = async () => {
+            setLoading(true);
+            const token = localStorage.getItem('token');
             try {
-                // Set loading to true only at the beginning of the fetch process
-                setLoading(true);
-                const response = await axios.get(`${API_URL}/api/courses/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-                if (isMounted) setCourse(response.data);
+                const courseResponse = await axios.get(
+                    `${API_URL}/api/courses/${id}`,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+
+                if (!isMounted) return;
+                setCourse(courseResponse.data);
+
+                if (token && enrolledCourseIds.has(parseInt(id))) {
+                    try {
+                        await axios.get(
+                            `${API_URL}/api/certificates/course/${id}`,
+                            { headers: { Authorization: `Bearer ${token}` } }
+                        );
+                        if (isMounted) setHasCertificate(true);
+                    } catch (certError) {
+                        if (isMounted) setHasCertificate(false);
+                    }
+                }
             } catch (err) {
                 if (isMounted) setError("Could not load course details.");
             } finally {
@@ -41,36 +57,29 @@ function CourseDetail() {
             }
         };
 
-        const checkCertificate = async () => {
-             if (user && isEnrolled) {
-                try {
-                    await axios.get(`${API_URL}/api/certificates/course/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-                    if (isMounted) setHasCertificate(true);
-                } catch (err) {
-                    if (isMounted) setHasCertificate(false);
-                }
-            }
-        };
-
-        fetchCourse();
-        checkCertificate();
+        if (id) {
+            fetchAllData();
+        }
 
         return () => { isMounted = false; };
-    }, [id, isEnrolled, user]);
+    }, [id, enrolledCourseIds, user]);
     
-    // Check if the course is completed. This is a crucial piece of logic.
     const isCourseComplete = isEnrolled && course && course.lessons?.length > 0 && course.resumeLessonId === null;
 
-    // --- UPDATED: This function now handles all certificate logic ---
     const handleCertificateAction = async () => {
-        // First, check if the course is actually complete before proceeding.
-        if (!isCourseComplete) {
-            alert("You must complete all lessons in the course before you can get your certificate.");
+        if (!isCourseComplete && !hasCertificate) {
+            alert("You must complete all lessons before getting a certificate.");
             return;
         }
         
         const token = localStorage.getItem('token');
         try {
+            // If they already have a certificate, just navigate to it.
+            if (hasCertificate) {
+                navigate(`/courses/${id}/certificate`);
+                return;
+            }
+            // Otherwise, generate it and then navigate.
             await axios.post(`${API_URL}/api/certificates/course/${id}`, {}, { headers: { Authorization: `Bearer ${token}` } });
             navigate(`/courses/${id}/certificate`);
         } catch (err) {
@@ -80,7 +89,7 @@ function CourseDetail() {
 
     if (loading) return <Container className="text-center my-5"><Spinner animation="border" /></Container>;
     if (error) return <Container className="my-5"><Alert variant="danger">{error}</Alert></Container>;
-    if (!course) return null;
+    if (!course) return <Container className="my-5"><Alert variant="info">Course not found.</Alert></Container>;
 
     const resumeLink = course.resumeLessonId 
         ? `/courses/${id}/lessons/${course.resumeLessonId}`
@@ -95,8 +104,7 @@ function CourseDetail() {
                 
                 {user && user.role === 'student' && (
                     <div className="mt-4">
-                         {isEnrolled ? (
-                            // --- THIS IS THE NEW BUTTON LAYOUT ---
+                        {isEnrolled ? (
                             <div className="d-flex justify-content-center align-items-center gap-2">
                                 {isCourseComplete ? (
                                     <Button variant="success" size="lg" disabled>
@@ -113,8 +121,7 @@ function CourseDetail() {
                                     {hasCertificate ? 'View Certificate' : 'Get Certificate'}
                                 </Button>
                             </div>
-                         ) : (
-                           // The non-enrolled UI remains the same
+                        ) : (
                            <Button variant="primary" size="lg" as={Link} to="/courses">
                                Enroll on Courses Page
                            </Button>
@@ -123,7 +130,6 @@ function CourseDetail() {
                 )}
             </Container>
 
-            {/* The rest of the component (lesson list) remains the same */}
             <div className="curriculum-section py-5 bg-light">
                 <Container>
                     <h2 className="text-center fw-bold mb-5">Course Curriculum</h2>
@@ -156,4 +162,3 @@ function CourseDetail() {
 }
 
 export default CourseDetail;
-

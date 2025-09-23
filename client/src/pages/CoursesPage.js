@@ -45,6 +45,7 @@ function CoursesPage() {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setCourses(response.data);
+                console.log('Courses data received from API:', response.data);
             } catch (err) {
                 console.error("Could not fetch courses:", err);
                 setError(err.response?.data?.error || "Could not load courses.");

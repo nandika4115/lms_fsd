@@ -17,6 +17,7 @@ function CourseCard({
   showDetails = true,
   customIcon
 }) {
+  console.log('CourseCard received:', { course, resumeLink });
   const bgColor = pastelColors[index % pastelColors.length];
   const [expanded, setExpanded] = useState(false);
 

@@ -24,8 +24,11 @@ function FeaturedCourses() {
 
   useEffect(() => {
     const fetchFeaturedCourses = async () => {
+      const token = localStorage.getItem('token');
       try {
-        const response = await axios.get(`${API_URL}/api/courses`);
+          const response = await axios.get(`${API_URL}/api/courses`, {
+          headers: { Authorization: `Bearer ${token}` } // Send the token
+        });        
         setCourses(response.data.slice(0, 3));
       } catch (error) {
         console.error("Could not fetch featured courses:", error);
@@ -63,6 +66,10 @@ function FeaturedCourses() {
           {courses.map((course, index) => {
             const isEnrolled = enrolledCourseIds.has(course.id);
             const status = enrollmentStatus[course.id];
+            const resumeLink = course.resumeLessonId
+              ? `/courses/${course.id}/lessons/${course.resumeLessonId}`
+              : `/courses/${course.id}`;
+
 
             // Display thumbnail, icons, all per use case!
             return (
@@ -74,8 +81,8 @@ function FeaturedCourses() {
                   status={status}
                   user={user}
                   onEnroll={handleEnroll}
-                  showResume={true}
-                  resumeLink={`/courses/${course.id}`}
+                  showResume={isEnrolled}
+                  resumeLink={resumeLink}
                   showEnroll={!!user}
                   showDetails={true}
                   customIcon={cardIcons[index % cardIcons.length]}

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Container, Card, Button, Spinner, Alert } from 'react-bootstrap';
-import { AwardFill, Download } from 'react-bootstrap-icons';
+import { Container, Button, Spinner, Alert } from 'react-bootstrap';
+import { Download } from 'react-bootstrap-icons';
 import axios from 'axios';
-import jsPDF from 'jspdf'; // Import the new PDF library
+import jsPDF from 'jspdf';
+import './Certificate.css';
 
 const API_URL = "http://localhost:5000";
 
@@ -12,7 +13,7 @@ function CertificatePage() {
     const [certificate, setCertificate] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const certificateRef = useRef(null); // Create a ref to access the certificate's HTML element
+    const certificateRef = useRef(null);
 
     useEffect(() => {
         const fetchCertificate = async () => {
@@ -23,7 +24,7 @@ function CertificatePage() {
                 });
                 setCertificate(response.data);
             } catch (err) {
-                setError("Could not load certificate. Please ensure you have completed the course and generated the certificate.");
+                setError("Could not load certificate. Please ensure you have completed the course.");
             } finally {
                 setLoading(false);
             }
@@ -31,23 +32,24 @@ function CertificatePage() {
         fetchCertificate();
     }, [courseId]);
 
-    // --- This function handles downloading the certificate as a PDF ---
     const handleDownloadPdf = () => {
-        // Create a new PDF document in landscape mode
         const doc = new jsPDF({
             orientation: 'landscape',
             unit: 'px',
-            format: [certificateRef.current.offsetWidth + 20, certificateRef.current.offsetHeight + 20] // Add padding
+            format: [certificateRef.current.offsetWidth + 60, certificateRef.current.offsetHeight + 60]
         });
-        
-        // Use the html method to render the certificate card into the PDF
+
         doc.html(certificateRef.current, {
             callback: function(pdf) {
-                // Save the generated PDF
                 pdf.save(`${certificate.username}-${certificate.course_title}-certificate.pdf`);
             },
-            x: 10, // Add horizontal padding
-            y: 10  // Add vertical padding
+            x: 30,
+            y: 30,
+            html2canvas: {
+                scale: 0.7,
+                backgroundColor: '#ffffff',
+                useCORS: true
+            }
         });
     };
 
@@ -57,26 +59,36 @@ function CertificatePage() {
 
     return (
         <Container className="my-5">
-            {/* The ref is attached to this Card element so we can capture it for the PDF */}
-            <Card className="text-center shadow-lg" ref={certificateRef} style={{ border: "10px solid #0d6efd", fontFamily: 'serif' }}>
-                <Card.Header className="bg-primary text-white" style={{ padding: '2rem', borderBottom: '5px solid #0a58ca' }}>
-                    <h1 className="my-2"><AwardFill /> Certificate of Completion</h1>
-                </Card.Header>
-                <Card.Body className="p-5">
-                    <p className="lead fs-4">This certifies that</p>
-                    <h2 className="display-4 text-primary my-4">{certificate.username}</h2>
-                    <p className="lead fs-4">has successfully completed the course</p>
-                    <h3 className="my-4">"{certificate.course_title}"</h3>
-                    <p className="text-muted mt-5">
-                        Issued on: {new Date(certificate.issued_at).toLocaleDateString()}
-                        <br />
-                        Certificate ID: {certificate.certificate_uid}
-                    </p>
-                </Card.Body>
-                <Card.Footer className="text-muted" style={{ padding: '1.5rem', backgroundColor: 'rgba(0,0,0,0.03)' }}>
-                    <p className="mb-0 fw-bold">EduLearnPro</p>
-                </Card.Footer>
-            </Card>
+            <div className="certificate-container" ref={certificateRef}>
+                <div className="certificate-geometric-bg"></div> 
+                
+                <div className="certificate-content">
+                    <div className="certificate-header">
+                        <h1 className="certificate-title">CERTIFICATE OF COMPLETION</h1>
+                        {/* Removed: <div className="certificate-award-icon"></div> */}
+                    </div>
+                    
+                    <div className="certificate-body">
+                        <p className="certify-text">This certifies that</p>
+                        <h2 className="recipient-name">{certificate.username}</h2>
+                        <p className="certify-text">has successfully completed the course</p>
+                        <h3 className="course-title">"{certificate.course_title}"</h3>
+                    </div>
+
+                    <div className="certificate-footer">
+                        <div className="issue-details">
+                            <span className="detail-label">Issued on:</span> {new Date(certificate.issued_at).toLocaleDateString()}
+                        </div>
+                        <div className="org-signature">
+                            EduLearnPro
+                        </div>
+                        <div className="cert-id-details">
+                            <span className="detail-label">Certificate ID:</span> {certificate.certificate_uid}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div className="text-center mt-4 d-print-none">
                 <Button variant="outline-secondary" className="me-2" as={Link} to={`/courses/${courseId}`}>Back to Course</Button>
                 <Button variant="primary" onClick={handleDownloadPdf}>
@@ -88,4 +100,3 @@ function CertificatePage() {
 }
 
 export default CertificatePage;
-

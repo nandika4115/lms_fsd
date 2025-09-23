@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Container,Card, Row, Col, Spinner, Alert, Form, InputGroup } from 'react-bootstrap';
+import { Container, Card, Row, Col, Spinner, Alert, Form, InputGroup } from 'react-bootstrap';
 import { Search } from 'react-bootstrap-icons';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
 import { useEnrollment } from '../hooks/useEnrollment';
-import CourseCard from '../components/CourseCard'; // Added import for CourseCard
+import CourseCard from '../components/CourseCard';
 
 const API_URL = "http://localhost:5000";
 
@@ -21,38 +21,45 @@ function CoursesPage() {
     const { user, enrolledCourseIds } = useContext(AuthContext);
 
     useEffect(() => {
-        const fetchCourses = async () => {
-            const token = localStorage.getItem('token');
-            try {
-                setLoading(true);
-                const response = await axios.get(`${API_URL}/api/courses`, {
-                    params: { search: searchTerm, category: selectedCategory, level: selectedLevel },
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setCourses(response.data);
-            } catch (err) {
-                setError("Could not load courses.");
-            } finally {
-                setLoading(false);
-            }
-        };
-        const delayDebounceFn = setTimeout(() => { fetchCourses(); }, 500);
-        return () => clearTimeout(delayDebounceFn);
-    }, [searchTerm, selectedCategory, selectedLevel, user]);
-
-    useEffect(() => {
         const fetchFilters = async () => {
             try {
                 const response = await axios.get(`${API_URL}/api/courses/filters`);
                 setFilters(response.data || { categories: [], levels: [] });
             } catch (err) {
                 console.error("Could not fetch filters:", err);
+                // Set an error message if filters fail to load
+                setError(err.response?.data?.error || "Could not load filter options.");
             }
         };
         fetchFilters();
     }, []);
 
-    if (error) return <Container className="my-5"><Alert variant="danger">{error}</Alert></Container>;
+    useEffect(() => {
+        const fetchCourses = async () => {
+            const token = localStorage.getItem('token');
+            try {
+                setLoading(true);
+                setError(''); // Clear previous errors
+                const response = await axios.get(`${API_URL}/api/courses`, {
+                    params: { search: searchTerm, category: selectedCategory, level: selectedLevel },
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setCourses(response.data);
+            } catch (err) {
+                console.error("Could not fetch courses:", err);
+                setError(err.response?.data?.error || "Could not load courses.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        // Debounce the request to avoid spamming the API on every key press
+        const delayDebounceFn = setTimeout(() => {
+            fetchCourses();
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm, selectedCategory, selectedLevel, user]);
+
 
     return (
         <div className="courses-page-background">
@@ -90,21 +97,21 @@ function CoursesPage() {
                     </Row>
                 </Card>
 
+                {error && <Alert variant="danger">{error}</Alert>}
+
                 {loading ? (
                     <div className="text-center"><Spinner animation="border" /></div>
-                ) : (
+                ) : !error && (
                     <Row>
                         {courses.length > 0 ? courses.map((course, index) => {
                             const isEnrolled = enrolledCourseIds.has(course.id);
                             const status = enrollmentStatus[course.id];
                             const resumeLink = course.resumeLessonId
-  ? `/courses/${course.id}/lessons/${course.resumeLessonId}`
-  : (course.lessons && course.lessons.length > 0 ? `/courses/${course.id}/lessons/${course.lessons[0].id}` : '#');
-
+                                ? `/courses/${course.id}/lessons/${course.resumeLessonId}`
+                                : `/courses/${course.id}`;
 
                             return (
                                 <Col md={6} lg={4} key={course.id} className="mb-4">
-
                                     <CourseCard
                                         course={course}
                                         index={index}
@@ -112,7 +119,7 @@ function CoursesPage() {
                                         status={status}
                                         user={user}
                                         onEnroll={handleEnroll}
-                                        showResume={true}
+                                        showResume={isEnrolled}
                                         resumeLink={resumeLink}
                                         showEnroll={!!user}
                                         showDetails={true}

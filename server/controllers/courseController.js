@@ -1,8 +1,8 @@
 const db = require("../config/db");
-
-// --- UPDATED: Get All Public Courses (with Search, Filtering, and Resume Logic) ---
+// --- Get All Public Courses (SIMPLE VERSION) ---
+// --- Get All Public Courses (WITH ENHANCED DEBUGGING) ---
 exports.getCourses = (req, res) => {
-    const studentId = req.user?.id; // Safely get the user ID if they are logged in
+    const studentId = req.user?.id;
     const { search, category, level } = req.query;
 
     let selectClause = "SELECT c.*";
@@ -10,7 +10,6 @@ exports.getCourses = (req, res) => {
     let whereClauses = ["c.status = 'published'"];
     const queryParams = [];
 
-    // If a student is logged in, add a subquery to find their resume lesson ID for each course
     if (studentId) {
         selectClause += `, (
             SELECT l.id
@@ -26,9 +25,7 @@ exports.getCourses = (req, res) => {
         queryParams.push(studentId);
     }
 
-    // Add search and filter clauses to the query
     if (search) {
-        // PostgreSQL: Use ILIKE for case-insensitive search instead of LIKE
         whereClauses.push("c.title ILIKE $" + (queryParams.length + 1));
         queryParams.push(`%${search}%`);
     }
@@ -41,38 +38,46 @@ exports.getCourses = (req, res) => {
         queryParams.push(level);
     }
 
-    // Assemble the final query
     const finalQuery = `${selectClause} ${fromClause} WHERE ${whereClauses.join(' AND ')}`;
+
+    console.log("DEBUG: Executing getCourses query:", finalQuery);
+    console.log("DEBUG: Query parameters:", queryParams);
 
     db.query(finalQuery, queryParams, (err, results) => {
         if (err) {
-            console.error("GET COURSES SQL ERROR:", err);
-            return res.status(500).json({ error: "Failed to load courses." });
+            console.error("FATAL: GET COURSES SQL ERROR:", err.stack);
+            return res.status(500).json({ error: "Failed to load courses due to a server error." });
         }
-        // PostgreSQL: Return results.rows array
         res.json(results.rows);
     });
 };
 
-// --- NEW: Get Dynamic Filter Options ---
+// --- Get Dynamic Filter Options (WITH ENHANCED DEBUGGING) ---
+// --- Get Dynamic Filter Options (WITH ENUM FIX) ---
 exports.getCourseFilters = (req, res) => {
     const categoriesQuery = "SELECT DISTINCT category FROM courses WHERE status = 'published' AND category IS NOT NULL AND category != '' ORDER BY category ASC";
-    const levelsQuery = "SELECT DISTINCT level FROM courses WHERE status = 'published' AND level IS NOT NULL AND level != '' ORDER BY level ASC";
+    
+    // FIX is in the line below: level::text != ''
+    const levelsQuery = "SELECT DISTINCT level FROM courses WHERE status = 'published' AND level IS NOT NULL AND level::text != '' ORDER BY level ASC";
 
     let filters = {};
     db.query(categoriesQuery, (err, categories) => {
-        if (err) return res.status(500).json({ error: err.message });
-        // PostgreSQL: Access via .rows array
+        if (err) {
+            console.error("FATAL: Get Categories Filter SQL ERROR:", err.stack);
+            return res.status(500).json({ error: "Failed to load course categories." });
+        }
         filters.categories = categories.rows.map(c => c.category);
 
         db.query(levelsQuery, (err, levels) => {
-            if (err) return res.status(500).json({ error: err.message });
-            // PostgreSQL: Access via .rows array
+            if (err) {
+                console.error("FATAL: Get Levels Filter SQL ERROR:", err.stack);
+                return res.status(500).json({ error: "Failed to load course levels." });
+            }
             filters.levels = levels.rows.map(l => l.level);
             res.json(filters);
         });
     });
-};
+};// ... keep all your other existing functions unchanged
 
 // --- UPDATED: Get a Single Course by ID (with Secure Lesson Content and correct Resume Logic) ---
 exports.getCourseById = (req, res) => {

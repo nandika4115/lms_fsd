@@ -70,7 +70,7 @@ function CertificatePage() {
                     
                     <div className="certificate-body">
                         <p className="certify-text">This certifies that</p>
-                        <h2 className="recipient-name">{certificate.username}</h2>
+                        <h2 className="recipient-name">{certificate.first_name} {certificate.last_name}</h2>
                         <p className="certify-text">has successfully completed the course</p>
                         <h3 className="course-title">"{certificate.course_title}"</h3>
                     </div>

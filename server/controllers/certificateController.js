@@ -89,7 +89,7 @@ exports.getCertificate = (req, res) => {
     
     // PostgreSQL: Update parameter placeholders
     const query = `
-        SELECT u.username, c.title as course_title, cert.certificate_uid, cert.issued_at 
+        SELECT u.first_name,u.last_name, c.title as course_title, cert.certificate_uid, cert.issued_at 
         FROM certificates cert 
         JOIN users u ON cert.student_id = u.id 
         JOIN courses c ON cert.course_id = c.id

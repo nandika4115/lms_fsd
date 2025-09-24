@@ -23,7 +23,7 @@ function CourseCard({
 
   return (
     <Card
-      className="course-card-new shadow-sm mb-4 h-100"
+      className="course-card-new shadow-sm mb-4 h-10"
       style={{ backgroundColor: bgColor }}
     >
       {/* Thumbnail Image */}
@@ -66,13 +66,6 @@ function CourseCard({
         <div className="mt-auto d-flex flex-column gap-2">
           {isEnrolled ? (
             <>
-              <Button
-                variant="success"
-                className="w-100 enrolled-btn"
-                disabled
-              >
-                Enrolled
-              </Button>
               <div className="d-flex gap-2">
                 {showDetails && (
                   <Button
@@ -88,10 +81,10 @@ function CourseCard({
                   <Button
                     as={Link}
                     to={resumeLink}
-                    variant="dark"
+                    variant="success"
                     className="w-50"
                   >
-                    Resume
+                    Enrolled
                   </Button>
                 )}
               </div>

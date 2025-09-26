@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Spinner, Alert, ListGroup, ProgressBar } from 'react-bootstrap';
-import { CheckCircleFill, Circle, PlayBtn, ArrowLeft, ArrowRight } from 'react-bootstrap-icons';
+import { CheckCircleFill, Circle, PlayBtn, ArrowLeft, ArrowRight, ChatDots } from 'react-bootstrap-icons';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
 
@@ -71,6 +71,8 @@ function LessonPage() {
                 } else if (foundLesson) {
                     setCurrentLesson(foundLesson);
                     setError('');
+                    // Store the current lesson ID in localStorage for "Back to Lesson" functionality
+                    localStorage.setItem(`lastLesson_${courseId}`, lessonId);
                 } else {
                     setError("Lesson not found.");
                 }
@@ -205,32 +207,46 @@ function LessonPage() {
                     <Card>
                         {/* Back to Course Button */}
                         <Card.Footer className="text-center">
-                            <Button 
-                                variant="outline-success" 
-                                as={Link} 
-                                to={`/courses/${courseId}`}
-                                size="sm"
-                                style={{ 
-                                    borderColor: '#777070ff', 
-                                    color: '#2c2c2c',
-                                    backgroundColor: 'transparent',
-                                    fontWeight: '900',
-                                    fontFamily: 'Arial, sans-serif'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.target.style.backgroundColor = '#007a23ff';
-                                    e.target.style.color = '#fff4f4ff';
-                                    e.target.style.fontWeight = '900';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.target.style.backgroundColor = 'transparent';
-                                    e.target.style.color = '#2c2c2c';
-                                    e.target.style.fontWeight = '900';
-                                }}
-                            >
-                                <ArrowLeft className="me-2" />
-                                <strong>Back to Course</strong>
-                            </Button>
+                            <div className="d-flex gap-2 justify-content-center">
+                                <Button 
+                                    variant="outline-success" 
+                                    as={Link} 
+                                    to={`/courses/${courseId}`}
+                                    size="sm"
+                                    style={{ 
+                                        borderColor: '#777070ff', 
+                                        color: '#2c2c2c',
+                                        backgroundColor: 'transparent',
+                                        fontWeight: '900',
+                                        fontFamily: 'Arial, sans-serif'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.backgroundColor = '#007a23ff';
+                                        e.target.style.color = '#fff4f4ff';
+                                        e.target.style.fontWeight = '900';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.backgroundColor = 'transparent';
+                                        e.target.style.color = '#2c2c2c';
+                                        e.target.style.fontWeight = '900';
+                                    }}
+                                >
+                                    <ArrowLeft className="me-2" />
+                                    <strong>Back to Course</strong>
+                                </Button>
+                                
+                                {/* NEW: Discussion Button */}
+                                <Button
+                                    variant="outline-primary"
+                                    as={Link}
+                                    to={`/courses/${courseId}/discussions`}
+                                    size="sm"
+                                    style={{ fontWeight: '600' }}
+                                >
+                                    <ChatDots className="me-2" />
+                                    <strong>Discussions</strong>
+                                </Button>
+                            </div>
                         </Card.Footer>
                     </Card>
                 </Col>

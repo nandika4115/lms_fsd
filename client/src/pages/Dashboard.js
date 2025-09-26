@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
 // Import all necessary icons
-import {  PeopleFill, PlayCircleFill, PatchCheckFill, StarFill, TrophyFill, MortarboardFill, Gem } from 'react-bootstrap-icons'; 
+import {  PeopleFill, PlayCircleFill, PatchCheckFill, StarFill, TrophyFill, MortarboardFill, Gem, ChatDots } from 'react-bootstrap-icons'; 
 
 const API_URL = "http://localhost:5000";
 
@@ -637,18 +637,24 @@ const InstructorDashboard = ({ data }) => {
                 <h2 className="fw-bold" style={{ color: '#2c3e50', fontSize: '1.8rem' }}>
                     My Courses
                 </h2>
-                <Button 
-                    as={Link} 
-                    to="/create-course" 
-                    variant="primary"
-                    style={{
-                        borderRadius: '10px',
-                        padding: '10px 20px',
-                        fontWeight: 'bold'
-                    }}
-                >
-                    Create New Course
-                </Button>
+                <div className="d-flex gap-2">
+                    <Button as={Link} to="/instructor/discussions" variant="primary">
+                        <ChatDots className="me-2" />
+                        Manage Course Questions
+                    </Button>
+                    <Button 
+                        as={Link} 
+                        to="/create-course" 
+                        variant="primary"
+                        style={{
+                            borderRadius: '10px',
+                            padding: '10px 20px',
+                            fontWeight: 'bold'
+                        }}
+                    >
+                        Create New Course
+                    </Button>
+                </div>
             </div>
             
             {/* --- Horizontal Course Cards with Horizontal Buttons --- */}

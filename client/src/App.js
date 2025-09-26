@@ -24,10 +24,19 @@ import CertificatePage from './pages/CertificatePage';
 function AppSidebar({ show, handleClose }) {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogoutAndClose = () => {
     logout(() => navigate('/'));
     handleClose();
+  };
+
+  // Function to check if a link is active
+  const isActiveLink = (path) => {
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname.startsWith(path);
   };
 
   return (
@@ -38,10 +47,42 @@ function AppSidebar({ show, handleClose }) {
       <Offcanvas.Body>
         <Nav className="flex-column">
           {/* --- Public Links (Always visible) --- */}
-          <Nav.Link as={Link} to="/" onClick={handleClose} className="sidebar-link d-flex align-items-center"><HouseDoor className="me-3" size={22} /> Home</Nav.Link>
-          <Nav.Link as={Link} to="/courses" onClick={handleClose} className="sidebar-link d-flex align-items-center"><Book className="me-3" size={22} /> Explore Courses</Nav.Link>
-          <Nav.Link as={Link} to="/#about-us" onClick={handleClose} className="sidebar-link d-flex align-items-center"><InfoCircle className="me-3" size={22} /> About Us</Nav.Link>
-          <Nav.Link as={Link} to="/#footer-contact" onClick={handleClose} className="sidebar-link d-flex align-items-center"><Envelope className="me-3" size={22} /> Contact</Nav.Link>
+          <Nav.Link 
+            as={Link} 
+            to="/" 
+            onClick={handleClose} 
+            className={`sidebar-link d-flex align-items-center ${isActiveLink('/') ? 'active' : ''}`}
+            style={isActiveLink('/') ? { backgroundColor: '#B2DFDB', color: '#004D40', borderRadius: '8px' } : {}}
+          >
+            <HouseDoor className="me-3" size={22} /> Home
+          </Nav.Link>
+          <Nav.Link 
+            as={Link} 
+            to="/courses" 
+            onClick={handleClose} 
+            className={`sidebar-link d-flex align-items-center ${isActiveLink('/courses') ? 'active' : ''}`}
+            style={isActiveLink('/courses') ? { backgroundColor: '#B2DFDB', color: '#004D40', borderRadius: '8px' } : {}}
+          >
+            <Book className="me-3" size={22} /> Explore Courses
+          </Nav.Link>
+          <Nav.Link 
+            as={Link} 
+            to="/#about-us" 
+            onClick={handleClose} 
+            className={`sidebar-link d-flex align-items-center ${isActiveLink('/#about-us') ? 'active' : ''}`}
+            style={isActiveLink('/#about-us') ? { backgroundColor: '#B2DFDB', color: '#004D40', borderRadius: '8px' } : {}}
+          >
+            <InfoCircle className="me-3" size={22} /> About Us
+          </Nav.Link>
+          <Nav.Link 
+            as={Link} 
+            to="/#footer-contact" 
+            onClick={handleClose} 
+            className={`sidebar-link d-flex align-items-center ${isActiveLink('/#footer-contact') ? 'active' : ''}`}
+            style={isActiveLink('/#footer-contact') ? { backgroundColor: '#B2DFDB', color: '#004D40', borderRadius: '8px' } : {}}
+          >
+            <Envelope className="me-3" size={22} /> Contact
+          </Nav.Link>
           
           <hr className="sidebar-divider" />
 
@@ -49,10 +90,22 @@ function AppSidebar({ show, handleClose }) {
           {user ? (
             // If user IS logged in, show these links
             <>
-              <Nav.Link as={Link} to="/dashboard" onClick={handleClose} className="sidebar-link d-lg-none d-flex align-items-center">
+              <Nav.Link 
+                as={Link} 
+                to="/dashboard" 
+                onClick={handleClose} 
+                className={`sidebar-link d-lg-none d-flex align-items-center ${isActiveLink('/dashboard') ? 'active' : ''}`}
+                style={isActiveLink('/dashboard') ? { backgroundColor: '#B2DFDB', color: '#004D40', borderRadius: '8px' } : {}}
+              >
                 <Grid1x2Fill className="me-3" size={22} /> Dashboard
               </Nav.Link>
-              <Nav.Link as={Link} to="/profile" onClick={handleClose} className="sidebar-link d-flex align-items-center">
+              <Nav.Link 
+                as={Link} 
+                to="/profile" 
+                onClick={handleClose} 
+                className={`sidebar-link d-flex align-items-center ${isActiveLink('/profile') ? 'active' : ''}`}
+                style={isActiveLink('/profile') ? { backgroundColor: '#B2DFDB', color: '#004D40', borderRadius: '8px' } : {}}
+              >
                 <PersonCircle className="me-3" size={22} /> Profile
               </Nav.Link>
               <Nav.Link onClick={handleLogoutAndClose} className="sidebar-link d-lg-none d-flex align-items-center">
@@ -62,7 +115,13 @@ function AppSidebar({ show, handleClose }) {
           ) : (
             // If user is NOT logged in, only show the responsive Login button
             <>
-              <Nav.Link as={Link} to="/login" onClick={handleClose} className="sidebar-link d-lg-none d-flex align-items-center">
+              <Nav.Link 
+                as={Link} 
+                to="/login" 
+                onClick={handleClose} 
+                className={`sidebar-link d-lg-none d-flex align-items-center ${isActiveLink('/login') ? 'active' : ''}`}
+                style={isActiveLink('/login') ? { backgroundColor: '#B2DFDB', color: '#004D40', borderRadius: '8px' } : {}}
+              >
                 <BoxArrowInRight className="me-3" size={22} /> Login
               </Nav.Link>
             </>

@@ -13,7 +13,7 @@ const getProfile = (req, res) => {
         if (results.rows.length === 0) return res.status(404).json({ message: "User not found" });
 
         // PostgreSQL: Access via .rows[0]
-        const userProfile = results.rows;
+        const userProfile = results.rows[0];
         delete userProfile.password;
         res.json(userProfile);
     });

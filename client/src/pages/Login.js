@@ -1,8 +1,8 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
-import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
+import { Form, Button, Alert } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import logo from './edulearnpro-logo.png';
+import logo from './logo.png';
 import AuthContext from '../context/AuthContext';
 
 const API_URL = "http://localhost:5000";
@@ -40,76 +40,103 @@ function Login() {
   };
 
   return (
-    <Container fluid>
-      <Row className="min-vh-100">
-        <Col md={6} className="bg-light d-none d-md-flex flex-column justify-content-center align-items-center">
-          <div className="text-center">
-            <img src={logo} alt="EduLearnPro Logo" style={{ width: '150px' }} className="mb-4"/>
-            <h1 className="text-primary">EduLearnPro</h1>
-            <p className="lead">Pursue real career paths through instructor-led courses taught by experts.</p>
-          </div>
-        </Col>
+    <div className="login-container" style={{ minHeight: '100vh', display: 'flex' }}>
+      {/* Left Half - Logo Background */}
+      <div className="left-section" style={{
+        flex: '1',
+        backgroundImage: `url(${logo})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}>
+      </div>
 
-        <Col md={6} className="d-flex justify-content-center align-items-center">
-          <div style={{ maxWidth: '400px', width: '100%' }} className="p-4">
-            <h2 className="text-center">Welcome Back!</h2>
-            <p className="text-muted mb-4 text-center">Please login to your account.</p>
-            <Form onSubmit={handleSubmit}>
-              {error && <Alert variant="danger">{error}</Alert>}
+      {/* Right Half - Gradient Background with Login Card */}
+      <div className="right-section" style={{
+        flex: '1',
+        background: 'radial-gradient(ellipse at center, #ffffff 0%, #e8f0fe 40%, #a8c8e1 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '40px'
+      }}>
+        {/* Floating Login Card */}
+        <div className="login-card" style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          borderRadius: '20px',
+          boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
+          padding: '40px',
+          maxWidth: '400px',
+          width: '100%',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}>
+          <h2 className="text-center mb-2">Welcome Back!</h2>
+          <p className="text-muted mb-4 text-center">Please login to your account.</p>
+          
+          <Form onSubmit={handleSubmit}>
+            {error && <Alert variant="danger">{error}</Alert>}
 
-              {/* Form field updated to specifically ask for Email */}
-              <Form.Group className="mb-3">
-                <Form.Label>Email Address</Form.Label>
-                <Form.Control
-                  type="email"
-                  name="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Email Address</Form.Label>
+              <Form.Control
+                type="email"
+                name="email"
+                placeholder="Enter your email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                style={{
+                  borderRadius: '10px',
+                  border: '1px solid #e0e0e0',
+                  padding: '12px'
+                }}
+              />
+            </Form.Group>
 
-              <Form.Group className="mb-3">
-                <Form.Label>Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  name="password"
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
-              
-              <div className="text-end mb-3">
-                 <a href="#!" className="text-decoration-none">Forgot Password?</a>
-              </div>
+            <Form.Group className="mb-3">
+              <Form.Label>Password</Form.Label>
+              <Form.Control
+                type="password"
+                name="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                style={{
+                  borderRadius: '10px',
+                  border: '1px solid #e0e0e0',
+                  padding: '12px'
+                }}
+              />
+            </Form.Group>
+            
+            <div className="text-end mb-3">
+               <a href="#!" className="text-decoration-none">Forgot Password?</a>
+            </div>
 
-              <Button variant="primary" type="submit" className="w-100 py-2">
-                Login
-              </Button>
-              
-              <div className="d-flex align-items-center my-4">
-                  <hr className="flex-grow-1" />
-                  <span className="mx-2 text-muted">Or continue with</span>
-                  <hr className="flex-grow-1" />
-              </div>
-              
-              <Button variant="outline-secondary" className="w-100 d-flex justify-content-center align-items-center py-2">
-                <img src="https://img.icons8.com/color/16/000000/google-logo.png" alt="Google icon" className="me-2"/>
-                Google
-              </Button>
+            <Button 
+              variant="primary" 
+              type="submit" 
+              className="w-100 py-2"
+              style={{
+                borderRadius: '10px',
+                padding: '12px',
+                fontWeight: '600',
+                boxShadow: '0 4px 15px rgba(0, 123, 255, 0.3)'
+              }}
+            >
+              Login
+            </Button>
 
-              <div className="mt-4 text-center">
-                <span className="text-muted">Don't have an account? </span>
-                <Link to="/register" className="fw-bold text-decoration-none">Sign up</Link>
-              </div>
-            </Form>
-          </div>
-        </Col>
-      </Row>
-    </Container>
+            <div className="mt-4 text-center">
+              <span className="text-muted">Don't have an account? </span>
+              <Link to="/register" className="fw-bold text-decoration-none">Sign up</Link>
+            </div>
+          </Form>
+        </div>
+      </div>
+    </div>
   );
 }
 

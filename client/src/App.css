@@ -139,6 +139,11 @@ footer#footer-contact .copyright-text {
     color: #343a40;
 }
 
+/* --- ✨ Minimal Profile Page Styling ✨ --- */
+.rounded-4 {
+  border-radius: 1rem !important;
+}
+
 /* --- ✨ Styling for Enrolled Button on Course Cards ✨ --- */
 /* --- Course Card Styling (Compact + Old Width) --- */
 .course-card-new {

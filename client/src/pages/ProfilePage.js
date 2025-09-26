@@ -1,18 +1,16 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { Container, Card, Spinner, Alert, Button } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Card, Spinner, Alert, Button, Badge, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import { PersonCircle } from 'react-bootstrap-icons';
 import axios from 'axios';
-import AuthContext from '../context/AuthContext';
 
 const API_URL = "http://localhost:5000";
 
-// Helper component to render each profile field consistently
-// This creates a layout similar to your original, which your CSS can style.
+// Minimal ProfileField component
 const ProfileField = ({ label, value }) => (
     <div className="d-flex justify-content-between align-items-center py-3 border-bottom">
         <span className="text-muted">{label}</span>
-        {/* This logic safely handles empty data and shows 'Not provided' as a fallback */}
-        <span className="fw-bold">{value || 'Not provided'}</span>
+        <span className="fw-semibold">{value || <span className="text-muted fst-italic">Not provided</span>}</span>
     </div>
 );
 
@@ -20,7 +18,6 @@ function ProfilePage() {
     const [profileData, setProfileData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const { user } = useContext(AuthContext);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -36,7 +33,7 @@ function ProfilePage() {
                 });
                 setProfileData(response.data);
             } catch (err) {
-                setError("Could not load profile data.");
+                setError(err.response?.data?.message || "Could not load profile data.");
             } finally {
                 setLoading(false);
             }
@@ -62,25 +59,56 @@ function ProfilePage() {
 
     return (
         <Container className="my-5">
-            <Card className="p-4 shadow-sm">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h1 className="mb-0">My Profile</h1>
-                    <Button as={Link} to="/profile/edit" variant="outline-primary">Edit Profile</Button>
-                </div>
+            <div className="d-flex justify-content-center">
+                <Card className="shadow-sm border-0 rounded-3" style={{ maxWidth: '700px', width: '100%' }}>
+                    <Card.Body className="p-4">
+                        {/* Top Section with Profile Picture and Basic Info */}
+                        <Row className="align-items-center mb-4">
+                            <Col xs="auto">
+                                <PersonCircle size={80} className="text-primary" />
+                            </Col>
+                            <Col>
+                                <h3 className="mb-1">{fullName || profileData.username || 'User'}</h3>
+                                <p className="text-muted mb-0">@{profileData.username}</p>
+                                <p className="text-muted small mb-0">{profileData.email}</p>
+                            </Col>
+                        </Row>
 
-                <h4 className="mb-4 fw-light">Welcome, {user?.username || 'User'}!</h4>
-                
-                {/* Using the helper component makes the code cleaner and less error-prone */}
-                <ProfileField label="Full Name" value={fullName} />
-                <ProfileField label="Username" value={profileData.username} />
-                <ProfileField label="Email" value={profileData.email} />
-                <ProfileField label="Account Role" value={profileData.role} />
-                <ProfileField label="Phone Number" value={profileData.phone_number} />
-                <ProfileField label="Age" value={profileData.age} />
-                <ProfileField label="Current Activity" value={profileData.current_activity} />
-                <ProfileField label="Institution/Company" value={profileData.activity_place} />
-                <ProfileField label="Member Since" value={new Date(profileData.created_at).toLocaleDateString()} />
-            </Card>
+                        {/* Role and Edit Button Row */}
+                        <Row className="mb-4">
+                            <Col xs="auto">
+                                <Badge 
+                                    bg={profileData.role === 'instructor' ? 'warning' : 'primary'} 
+                                    className="px-3 py-2"
+                                >
+                                    {profileData.role?.charAt(0).toUpperCase() + profileData.role?.slice(1) || 'Student'}
+                                </Badge>
+                            </Col>
+                            <Col xs="auto">
+                                <Button as={Link} to="/profile/edit" variant="outline-primary" size="sm">
+                                    Edit Profile
+                                </Button>
+                            </Col>
+                        </Row>
+
+                        {/* Profile Details */}
+                        <div>
+                            <h6 className="text-muted mb-3">Profile Details</h6>
+                            <Row>
+                                <Col md={6}>
+                                    <ProfileField label="Phone Number" value={profileData.phone_number} />
+                                    <ProfileField label="Age" value={profileData.age} />
+                                    <ProfileField label="Current Activity" value={profileData.current_activity} />
+                                </Col>
+                                <Col md={6}>
+                                    <ProfileField label="Institution/Company" value={profileData.activity_place} />
+                                    <ProfileField label="Member Since" value={new Date(profileData.created_at).toLocaleDateString()} />
+                                </Col>
+                            </Row>
+                        </div>
+                    </Card.Body>
+                </Card>
+            </div>
         </Container>
     );
 }

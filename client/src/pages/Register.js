@@ -60,13 +60,13 @@ function Register() {
                     <Row className="mb-3">
                         <Col sm={6}>
                             <Form.Group>
-                                <Form.Label>First Name</Form.Label>
+                                <Form.Label>First Name <span style={{ color: 'red' }}>*</span></Form.Label>
                                 <Form.Control type="text" name="firstName" placeholder="e.g., John" value={formData.firstName} onChange={handleChange} required />
                             </Form.Group>
                         </Col>
                         <Col sm={6}>
                             <Form.Group>
-                                <Form.Label>Last Name</Form.Label>
+                                <Form.Label>Last Name <span style={{ color: 'red' }}>*</span></Form.Label>
                                 <Form.Control type="text" name="lastName" placeholder="e.g., Doe" value={formData.lastName} onChange={handleChange} required />
                             </Form.Group>
                         </Col>
@@ -74,19 +74,19 @@ function Register() {
                     <Row className="mb-3">
                         <Col sm={6}>
                             <Form.Group>
-                                <Form.Label>Username</Form.Label>
+                                <Form.Label>Username <span style={{ color: 'red' }}>*</span></Form.Label>
                                 <Form.Control type="text" name="username" placeholder="Your public display name" value={formData.username} onChange={handleChange} required />
                             </Form.Group>
                         </Col>
                         <Col sm={6}>
                             <Form.Group>
-                                <Form.Label>Email Address</Form.Label>
+                                <Form.Label>Email Address <span style={{ color: 'red' }}>*</span></Form.Label>
                                 <Form.Control type="email" name="email" placeholder="you@example.com" value={formData.email} onChange={handleChange} required />
                             </Form.Group>
                         </Col>
                     </Row>
                     <Form.Group className="mb-3">
-                        <Form.Label>Password</Form.Label>
+                        <Form.Label>Password <span style={{ color: 'red' }}>*</span></Form.Label>
                         <Form.Control type="password" name="password" placeholder="Create a strong password" value={formData.password} onChange={handleChange} required />
                     </Form.Group>
                     <hr />

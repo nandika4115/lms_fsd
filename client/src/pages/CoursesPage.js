@@ -1,18 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Container, Card, Row, Col, Button, Spinner, Alert, Form, InputGroup } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import { CodeSlash, Brush, GraphUp, Search, PlayCircleFill } from 'react-bootstrap-icons';
+import { Container, Card, Row, Col, Spinner, Alert, Form, InputGroup } from 'react-bootstrap';
+import { Search } from 'react-bootstrap-icons';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
 import { useEnrollment } from '../hooks/useEnrollment';
+import CourseCard from '../components/CourseCard';
 
 const API_URL = "http://localhost:5000";
-
-const cardStyles = [
-    { color: '#E8F5E9', icon: <CodeSlash size={40} className="text-success" /> },
-    { color: '#E3F2FD', icon: <GraphUp size={40} className="text-primary" /> },
-    { color: '#FFF3E0', icon: <Brush size={40} className="text-warning" /> }
-];
 
 function CoursesPage() {
     const [courses, setCourses] = useState([]);
@@ -27,40 +21,46 @@ function CoursesPage() {
     const { user, enrolledCourseIds } = useContext(AuthContext);
 
     useEffect(() => {
-        const fetchCourses = async () => {
-            const token = localStorage.getItem('token'); // Get the token
-            try {
-                setLoading(true);
-                const response = await axios.get(`${API_URL}/api/courses`, {
-                    params: { search: searchTerm, category: selectedCategory, level: selectedLevel },
-                    // --- THIS IS THE FIX ---
-                    // Send the token with the request so the server can calculate the resume link
-                    headers: { Authorization: `Bearer ${token}` } 
-                });
-                setCourses(response.data);
-            } catch (err) {
-                setError("Could not load courses.");
-            } finally {
-                setLoading(false);
-            }
-        };
-        const delayDebounceFn = setTimeout(() => { fetchCourses(); }, 500);
-        return () => clearTimeout(delayDebounceFn);
-    }, [searchTerm, selectedCategory, selectedLevel, user]); // Re-fetch if user logs in/out
-
-    useEffect(() => {
         const fetchFilters = async () => {
             try {
                 const response = await axios.get(`${API_URL}/api/courses/filters`);
                 setFilters(response.data || { categories: [], levels: [] });
             } catch (err) {
                 console.error("Could not fetch filters:", err);
+                // Set an error message if filters fail to load
+                setError(err.response?.data?.error || "Could not load filter options.");
             }
         };
         fetchFilters();
     }, []);
 
-    if (error) return <Container className="my-5"><Alert variant="danger">{error}</Alert></Container>;
+    useEffect(() => {
+        const fetchCourses = async () => {
+            const token = localStorage.getItem('token');
+            try {
+                setLoading(true);
+                setError(''); // Clear previous errors
+                const response = await axios.get(`${API_URL}/api/courses`, {
+                    params: { search: searchTerm, category: selectedCategory, level: selectedLevel },
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setCourses(response.data);
+                console.log('Courses data received from API:', response.data);
+            } catch (err) {
+                console.error("Could not fetch courses:", err);
+                setError(err.response?.data?.error || "Could not load courses.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        // Debounce the request to avoid spamming the API on every key press
+        const delayDebounceFn = setTimeout(() => {
+            fetchCourses();
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm, selectedCategory, selectedLevel, user]);
+
 
     return (
         <div className="courses-page-background">
@@ -72,67 +72,59 @@ function CoursesPage() {
 
                 <Card className="p-3 mb-5 shadow-sm">
                     <Row className="g-3 align-items-center">
-                        <Col lg={6} md={12}><InputGroup><InputGroup.Text><Search /></InputGroup.Text><Form.Control type="text" placeholder="Search by course title..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></InputGroup></Col>
-                        <Col lg={3} md={6}><Form.Select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}><option value="">All Categories</option>{filters.categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}</Form.Select></Col>
-                        <Col lg={3} md={6}><Form.Select value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)}><option value="">All Levels</option>{filters.levels.map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}</Form.Select></Col>
+                        <Col lg={6} md={12}>
+                            <InputGroup>
+                                <InputGroup.Text><Search /></InputGroup.Text>
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Search by course title..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </InputGroup>
+                        </Col>
+                        <Col lg={3} md={6}>
+                            <Form.Select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+                                <option value="">All Categories</option>
+                                {filters.categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                            </Form.Select>
+                        </Col>
+                        <Col lg={3} md={6}>
+                            <Form.Select value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)}>
+                                <option value="">All Levels</option>
+                                {filters.levels.map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
+                            </Form.Select>
+                        </Col>
                     </Row>
                 </Card>
 
+                {error && <Alert variant="danger">{error}</Alert>}
+
                 {loading ? (
                     <div className="text-center"><Spinner animation="border" /></div>
-                ) : (
+                ) : !error && (
                     <Row>
                         {courses.length > 0 ? courses.map((course, index) => {
                             const isEnrolled = enrolledCourseIds.has(course.id);
                             const status = enrollmentStatus[course.id];
-                            const style = cardStyles[index % cardStyles.length];
-
-                            // --- THIS IS THE NEW LOGIC FOR THE RESUME BUTTON LINK ---
                             const resumeLink = course.resumeLessonId
                                 ? `/courses/${course.id}/lessons/${course.resumeLessonId}`
-                                : `/courses/${course.id}`; // Fallback to the course detail page
+                                : `/courses/${course.id}`;
 
                             return (
                                 <Col md={6} lg={4} key={course.id} className="mb-4">
-                                    <Card className="h-100 course-card-new" style={{ backgroundColor: style.color }}>
-                                        <Card.Body className="p-4 d-flex flex-column">
-                                            <div className="mb-3">{style.icon}</div>
-                                            <Card.Title as="h4" className="fw-bold course-card-title">{course.title}</Card.Title>
-                                            <Card.Text className="course-card-text mb-4">{course.description}</Card.Text>
-                                            
-                                            <div className="mt-auto">
-                                                {isEnrolled ? (
-                                                    <div>
-                                                        <Button variant="success" className="w-100 mb-2" style={{ backgroundColor: '#28a745', borderColor: '#28a745' }} disabled>Enrolled</Button>
-                                                        <div className="d-flex gap-2">
-                                                            <Button as={Link} to={`/courses/${course.id}`} variant="dark" className="w-50">View</Button>
-                                                            {/* This button now uses the smart resumeLink */}
-                                                            <Button as={Link} to={resumeLink} variant="dark" className="w-50">
-                                                                <PlayCircleFill className="me-1"/> Resume
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <div>
-                                                        {status && <Alert variant={status.type} className="py-2 mb-3">{status.message}</Alert>}
-                                                        <div className="d-flex gap-2">
-                                                            <Button as={Link} to={`/courses/${course.id}`} variant="dark" className="w-100">Details</Button>
-                                                            {user && user.role === 'student' && (
-                                                                <Button 
-                                                                    variant="primary"
-                                                                    className="w-100"
-                                                                    onClick={() => handleEnroll(course.id)}
-                                                                    disabled={status?.type === 'info' || status?.type === 'success'}
-                                                                >
-                                                                    {status?.type === 'info' ? 'Enrolling...' : 'Enroll'}
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
+                                    <CourseCard
+                                        course={course}
+                                        index={index}
+                                        isEnrolled={isEnrolled}
+                                        status={status}
+                                        user={user}
+                                        onEnroll={handleEnroll}
+                                        showResume={isEnrolled}
+                                        resumeLink={resumeLink}
+                                        showEnroll={!!user}
+                                        showDetails={true}
+                                    />
                                 </Col>
                             );
                         }) : (
@@ -146,4 +138,3 @@ function CoursesPage() {
 }
 
 export default CoursesPage;
-

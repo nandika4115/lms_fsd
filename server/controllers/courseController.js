@@ -1,8 +1,9 @@
 const db = require("../config/db");
-
-// --- UPDATED: Get All Public Courses (with Search, Filtering, and Resume Logic) ---
+// --- Get All Public Courses (SIMPLE VERSION) ---
+// --- Get All Public Courses (FINAL VERSION) ---
 exports.getCourses = (req, res) => {
-    const studentId = req.user?.id; // Safely get the user ID if they are logged in
+    const studentId = req.user?.id;
+    console.log("--- INSIDE GETCOURSES --- User ID found on request:", studentId);
     const { search, category, level } = req.query;
 
     let selectClause = "SELECT c.*";
@@ -10,25 +11,20 @@ exports.getCourses = (req, res) => {
     let whereClauses = ["c.status = 'published'"];
     const queryParams = [];
 
-    // If a student is logged in, add a subquery to find their resume lesson ID for each course
     if (studentId) {
+        // This LEFT JOIN logic correctly finds the next lesson to resume
         selectClause += `, (
             SELECT l.id
             FROM lessons l
-            WHERE 
-                l.course_id = c.id 
-                AND 
-                l.id NOT IN (SELECT lc.lesson_id FROM lesson_completions lc WHERE lc.student_id = $1)
-            ORDER BY 
-                COALESCE(l.lesson_order, l.id) ASC
+            LEFT JOIN lesson_completions lc ON l.id = lc.lesson_id AND lc.student_id = $1
+            WHERE l.course_id = c.id AND lc.lesson_id IS NULL
+            ORDER BY COALESCE(l.lesson_order, l.id) ASC
             LIMIT 1
-        ) as resumeLessonId`;
+        ) as "resumeLessonId"`; // Use quotes to preserve casing
         queryParams.push(studentId);
     }
 
-    // Add search and filter clauses to the query
     if (search) {
-        // PostgreSQL: Use ILIKE for case-insensitive search instead of LIKE
         whereClauses.push("c.title ILIKE $" + (queryParams.length + 1));
         queryParams.push(`%${search}%`);
     }
@@ -41,39 +37,43 @@ exports.getCourses = (req, res) => {
         queryParams.push(level);
     }
 
-    // Assemble the final query
     const finalQuery = `${selectClause} ${fromClause} WHERE ${whereClauses.join(' AND ')}`;
 
     db.query(finalQuery, queryParams, (err, results) => {
         if (err) {
-            console.error("GET COURSES SQL ERROR:", err);
-            return res.status(500).json({ error: "Failed to load courses." });
+            console.error("FATAL: GET COURSES SQL ERROR:", err.stack);
+            return res.status(500).json({ error: "Failed to load courses due to a server error." });
         }
-        // PostgreSQL: Return results.rows array
         res.json(results.rows);
     });
 };
 
-// --- NEW: Get Dynamic Filter Options ---
+// --- Get Dynamic Filter Options (FINAL VERSION) ---
 exports.getCourseFilters = (req, res) => {
     const categoriesQuery = "SELECT DISTINCT category FROM courses WHERE status = 'published' AND category IS NOT NULL AND category != '' ORDER BY category ASC";
-    const levelsQuery = "SELECT DISTINCT level FROM courses WHERE status = 'published' AND level IS NOT NULL AND level != '' ORDER BY level ASC";
+    const levelsQuery = "SELECT DISTINCT level FROM courses WHERE status = 'published' AND level IS NOT NULL AND level::text != '' ORDER BY level ASC";
 
     let filters = {};
     db.query(categoriesQuery, (err, categories) => {
-        if (err) return res.status(500).json({ error: err.message });
-        // PostgreSQL: Access via .rows array
+        if (err) {
+            console.error("FATAL: Get Categories Filter SQL ERROR:", err.stack);
+            return res.status(500).json({ error: "Failed to load course categories." });
+        }
         filters.categories = categories.rows.map(c => c.category);
 
         db.query(levelsQuery, (err, levels) => {
-            if (err) return res.status(500).json({ error: err.message });
-            // PostgreSQL: Access via .rows array
+            if (err) {
+                console.error("FATAL: Get Levels Filter SQL ERROR:", err.stack);
+                return res.status(500).json({ error: "Failed to load course levels." });
+            }
             filters.levels = levels.rows.map(l => l.level);
             res.json(filters);
         });
     });
 };
 
+// --- (Your other functions like getCourseById, createCourse, etc., go here) ---
+// Make sure the rest of your functions from your original file are also present.
 // --- UPDATED: Get a Single Course by ID (with Secure Lesson Content and correct Resume Logic) ---
 exports.getCourseById = (req, res) => {
     const courseId = parseInt(req.params.id, 10);

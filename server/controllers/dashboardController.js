@@ -59,7 +59,7 @@ const getStudentDashboardData = (studentId, callback) => {
 
     // 1. Enrolled courses & progress - PostgreSQL: Update parameter placeholders
     const enrolledCoursesQuery = `
-        SELECT c.id AS course_id,
+SELECT c.id AS course_id,
                c.title AS course_title,
                c.thumbnail_url,
                COALESCE((SELECT COUNT(*) FROM lessons WHERE course_id = c.id), 0) AS total_lessons,
@@ -67,20 +67,15 @@ const getStudentDashboardData = (studentId, callback) => {
                (
                    SELECT l.id
                    FROM lessons l
-                   WHERE l.course_id = c.id
-                     AND l.id NOT IN (
-                         SELECT lc2.lesson_id
-                         FROM lesson_completions lc2
-                         WHERE lc2.student_id = $2 AND lc2.course_id = c.id
-                     )
+                   LEFT JOIN lesson_completions lc ON l.id = lc.lesson_id AND lc.student_id = $2
+                   WHERE l.course_id = c.id AND lc.lesson_id IS NULL
                    ORDER BY COALESCE(l.lesson_order, l.id) ASC
                    LIMIT 1
-               ) AS resumeLessonId
+               ) AS "resumeLessonId"
         FROM enrollments e
         JOIN courses c ON e.course_id = c.id
         WHERE e.student_id = $3;
     `;
-
     db.query(enrolledCoursesQuery, [studentId, studentId, studentId], (err, enrolledCourses) => {
         if (err) {
             console.error("❌ Error in enrolledCoursesQuery:", err);

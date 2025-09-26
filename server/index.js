@@ -11,6 +11,8 @@ const enrollmentRoutes = require('./routes/enrollmentRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const certificateRoutes = require('./routes/certificateRoutes');
+// Add this import with your other route imports
+const discussionRoutes = require('./routes/discussionRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,6 +29,8 @@ app.use('/api/enrollments', enrollmentRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/certificates', certificateRoutes);
+// Add this route with your other API routes
+app.use('/api/discussions', discussionRoutes);
 
 // Test PostgreSQL database connection
 const testConnection = async () => {

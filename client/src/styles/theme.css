@@ -542,6 +542,118 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+/* LESSON PAGE DARK MODE STYLING */
+/* Fix Back to Course button visibility and improve lesson list */
+[data-theme="dark"] .card-footer .btn-outline-success {
+  background-color: #10b981 !important;
+  border-color: #10b981 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="dark"] .card-footer .btn-outline-success:hover {
+  background-color: #059669 !important;
+  border-color: #059669 !important;
+  color: #ffffff !important;
+}
+
+/* Discussions button in lesson page */
+[data-theme="dark"] .card-footer .btn-outline-primary {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="dark"] .card-footer .btn-outline-primary:hover {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+/* Previous button - make it solid by default */
+[data-theme="dark"] .btn-outline-secondary {
+  background-color: #6b7280 !important;
+  border-color: #6b7280 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+  background-color: #4b5563 !important;
+  border-color: #4b5563 !important;
+  color: #ffffff !important;
+}
+
+/* Light mode - make previous button solid too */
+.btn-outline-secondary {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+  color: #ffffff !important;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #5a6268 !important;
+  border-color: #5a6268 !important;
+  color: #ffffff !important;
+}
+
+/* Lesson list improvements - better colors for dark mode */
+[data-theme="dark"] .list-group-item {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .list-group-item:hover {
+  background-color: var(--bg-tertiary) !important;
+}
+
+[data-theme="dark"] .list-group-item.active {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+/* Better lesson list colors for light mode too */
+.list-group-item.active {
+  background-color: #0d6efd !important;
+  border-color: #0d6efd !important;
+  color: #ffffff !important;
+}
+
+.list-group-item:hover {
+  background-color: #f8f9fa !important;
+}
+
+/* Progress bar in lesson page */
+[data-theme="dark"] .progress {
+  background-color: var(--bg-tertiary) !important;
+}
+
+[data-theme="dark"] .progress-bar {
+  background-color: #3b82f6 !important;
+}
+
+/* Lesson page card headers */
+[data-theme="dark"] .card-header {
+  background-color: var(--bg-tertiary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Lesson video iframe styling */
+[data-theme="dark"] iframe {
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Congratulations message styling */
+[data-theme="dark"] .alert-success {
+  background-color: #065f46 !important;
+  border-color: #10b981 !important;
+  color: #d1fae5 !important;
+}
+
 [data-theme="dark"] .courses-page-background .btn-outline-primary:hover {
   background-color: #3b82f6 !important;
   border-color: #3b82f6 !important;

@@ -21,6 +21,9 @@ import LessonPage from './pages/LessonPage';
 import CertificatePage from './pages/CertificatePage';
 import CourseDiscussion from './components/CourseDiscussion';
 import InstructorDiscussions from './components/InstructorDiscussions';
+import { ThemeProvider } from './context/ThemeContext';
+import ThemeToggle from './components/ThemeToggle';
+import './styles/theme.css';
 
 // --- ✨ Sidebar (Offcanvas) Component (Updated Logic) ✨ ---
 function AppSidebar({ show, handleClose }) {
@@ -225,15 +228,18 @@ function AppContent() {
         </Routes>
       </main>
       {showNavAndFooter && <AppFooter />}
+      <ThemeToggle />
     </div>
   );
 }
 function App() {
   return (
-    <Router>
-      <ScrollHandler /> 
-      <AppContent />
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <ScrollHandler /> 
+        <AppContent />
+      </Router>
+    </ThemeProvider>
   );
 }
 

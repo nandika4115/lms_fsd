@@ -1,0 +1,945 @@
+/* Theme Variables - Light Mode (Default) */
+/* These variables support your existing design without changing it */
+:root {
+  /* Your original colors are preserved - these variables are just fallbacks */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --border-color: #dee2e6;
+  --card-bg: #ffffff;
+  --card-border: #dee2e6;
+  --card-shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* EXCLUDE LOGIN AND SIGNUP PAGES FROM DARK MODE */
+/* These pages will always stay in light mode */
+.login-page [data-theme="dark"],
+.register-page [data-theme="dark"],
+[data-theme="dark"] .login-page,
+[data-theme="dark"] .register-page {
+  background-color: #ffffff !important;
+  color: #212529 !important;
+}
+
+/* Force light mode styling for login/signup forms */
+.login-page [data-theme="dark"] .form-control,
+.register-page [data-theme="dark"] .form-control,
+[data-theme="dark"] .login-page .form-control,
+[data-theme="dark"] .register-page .form-control {
+  background-color: #ffffff !important;
+  border-color: #ced4da !important;
+  color: #212529 !important;
+}
+
+.login-page [data-theme="dark"] .card,
+.register-page [data-theme="dark"] .card,
+[data-theme="dark"] .login-page .card,
+[data-theme="dark"] .register-page .card {
+  background-color: #ffffff !important;
+  border-color: #dee2e6 !important;
+  color: #212529 !important;
+}
+
+/* EXCLUDE CERTIFICATE PAGE FROM DARK MODE */
+/* Certificate page stays exactly like light theme - COMPLETE OVERRIDE */
+[data-theme="dark"] body:has(.certificate-container) {
+  background-color: #f8f9fa !important;
+  color: #212529 !important;
+}
+
+[data-theme="dark"] .certificate-container {
+  font-family: 'Montserrat', sans-serif !important;
+  background-color: #ffffff !important;
+  border: 3px solid #34495e !important;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 12px !important;
+  color: initial !important;
+}
+
+[data-theme="dark"] .certificate-geometric-bg {
+  background-image: url('data:image/svg+xml;utf8,<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="diagonal-lines" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M-10,10 l20,-20 M0,40 l40,-40 M30,50 l20,-20" stroke="%23EAEFF4" stroke-width="1.5"/></pattern></defs><rect width="100%" height="100%" fill="url(%23diagonal-lines)"/></svg>') !important;
+  background-size: 80px 80px !important;
+  opacity: 0.6 !important;
+  transform: rotate(15deg) !important;
+}
+
+[data-theme="dark"] .certificate-content {
+  position: relative !important;
+  z-index: 2 !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  padding: 20px !important;
+  border-radius: 8px !important;
+}
+
+[data-theme="dark"] .certificate-title {
+  font-size: 2.2rem !important;
+  font-weight: 700 !important;
+  color: #212529 !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  margin: 0 !important;
+}
+
+[data-theme="dark"] .certify-text {
+  font-size: 1.1rem !important;
+  color: #343a40 !important;
+  margin-bottom: 0.8rem !important;
+  line-height: 1.5 !important;
+}
+
+[data-theme="dark"] .recipient-name {
+  font-size: 3.5rem !important;
+  font-weight: 700 !important;
+  color: #0d6efd !important;
+  margin: 1rem 0 1.5rem 0 !important;
+  text-transform: capitalize !important;
+}
+
+[data-theme="dark"] .course-title {
+  font-size: 1.8rem !important;
+  font-weight: 600 !important;
+  color: #212529 !important;
+  margin-top: 1rem !important;
+}
+
+[data-theme="dark"] .certificate-footer {
+  margin-top: 4rem !important;
+  display: flex !important;
+  justify-content: space-around !important;
+  align-items: flex-end !important;
+  font-size: 0.85rem !important;
+  color: #888 !important;
+  border-top: 1px solid #e9ecef !important;
+  padding-top: 1.5rem !important;
+}
+
+[data-theme="dark"] .detail-label {
+  font-weight: 600 !important;
+  color: #343a40 !important;
+  display: block !important;
+  margin-bottom: 5px !important;
+}
+
+[data-theme="dark"] .org-signature {
+  font-weight: 700 !important;
+  font-size: 1.2rem !important;
+  color: #212529 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+[data-theme="dark"] .org-signature::after {
+  content: '' !important;
+  display: block !important;
+  width: 60px !important;
+  height: 2px !important;
+  background-color: #0d6efd !important;
+  margin: 8px auto 0 !important;
+}
+
+/* Reset container styling for certificate page */
+[data-theme="dark"] .container:has(.certificate-container) {
+  background-color: transparent !important;
+  color: #212529 !important;
+}
+
+/* Ensure buttons below certificate use original light theme styling */
+[data-theme="dark"] .d-print-none .btn-outline-secondary {
+  background-color: transparent !important;
+  border-color: #6c757d !important;
+  color: #6c757d !important;
+}
+
+[data-theme="dark"] .d-print-none .btn-outline-secondary:hover {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .d-print-none .btn-primary {
+  background-color: #0d6efd !important;
+  border-color: #0d6efd !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .d-print-none .btn-primary:hover {
+  background-color: #0b5ed7 !important;
+  border-color: #0a58ca !important;
+  color: #ffffff !important;
+}
+
+/* Dark Mode Theme - Lighter and more comfortable */
+[data-theme="dark"] {
+  /* Background Colors - Lighter, more comfortable dark theme */
+  --bg-primary: #1a1d29;
+  --bg-secondary: #242936;
+  --bg-tertiary: #2f3349;
+  --card-bg: #242936;
+  
+  /* Text Colors - Better contrast with lighter backgrounds */
+  --text-primary: #f0f2f5;
+  --text-secondary: #b8bcc8;
+  --text-muted: #8b95a7;
+  
+  /* Border Colors - Softer borders */
+  --border-color: #3a3f4f;
+  --card-border: #3a3f4f;
+  --card-shadow: rgba(0, 0, 0, 0.3);
+}
+
+/* DARK MODE ONLY - These styles only apply in dark mode and don't affect light mode */
+[data-theme="dark"] body {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Dark mode card styling - preserves your rounded corners and hover effects */
+[data-theme="dark"] .card {
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-primary) !important;
+  /* Your original border-radius and transitions are preserved */
+}
+
+[data-theme="dark"] .course-card-new {
+  background-color: var(--card-bg) !important;
+  /* All your original styling (border-radius: 15px, hover effects, etc.) is preserved */
+}
+
+[data-theme="dark"] .lesson-card {
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  /* Your original border-radius: 15px and hover effects are preserved */
+}
+
+/* Dark mode text styling */
+[data-theme="dark"] h1, 
+[data-theme="dark"] h2, 
+[data-theme="dark"] h3, 
+[data-theme="dark"] h4, 
+[data-theme="dark"] h5, 
+[data-theme="dark"] h6 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] p {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .course-card-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .course-card-text {
+  color: var(--text-secondary) !important;
+}
+
+/* Dark mode navigation - preserves your beautiful styling */
+[data-theme="dark"] .app-navbar {
+  background-color: var(--bg-primary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .app-navbar .navbar-brand {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .sidebar-toggle-btn {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .app-sidebar.offcanvas {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .app-sidebar .sidebar-link {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .app-sidebar .sidebar-link:hover {
+  background-color: var(--bg-tertiary) !important;
+}
+
+/* Dark mode sections - preserves your layout */
+[data-theme="dark"] .courses-page-background,
+[data-theme="dark"] .curriculum-section {
+  background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .hero-section {
+  /* Your gradients are preserved - only text color adjusted */
+  color: white !important;
+}
+
+/* Dark mode forms */
+[data-theme="dark"] .form-control {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .form-control::placeholder {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .form-control:focus {
+  background-color: var(--card-bg) !important;
+  border-color: #3b82f6 !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+}
+
+[data-theme="dark"] .form-select {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .form-select:focus {
+  background-color: var(--card-bg) !important;
+  border-color: #3b82f6 !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+}
+
+/* Dark mode for specific components */
+[data-theme="dark"] .modal-content {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .dropdown-menu {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .dropdown-item {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+  background-color: var(--bg-tertiary) !important;
+}
+
+[data-theme="dark"] .alert {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Dark mode text utilities */
+[data-theme="dark"] .text-muted {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .text-dark {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .lead {
+  color: var(--text-secondary) !important;
+}
+
+/* Theme Toggle Button - Repositioned to bottom right to avoid overlap */
+.theme-toggle {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 1040;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px var(--card-shadow);
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 25px var(--card-shadow);
+}
+
+/* Smooth transitions - only for theme changes, not affecting your existing animations */
+[data-theme="dark"] * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* COURSES PAGE SPECIFIC DARK MODE STYLING */
+/* These styles ONLY apply in dark mode and don't affect your light mode design */
+
+[data-theme="dark"] .courses-page-background {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .page-header h1 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .page-header .lead {
+  color: var(--text-secondary) !important;
+}
+
+/* Search and filter card */
+[data-theme="dark"] .courses-page-background .card {
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Form controls in courses page */
+[data-theme="dark"] .courses-page-background .form-control {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .courses-page-background .form-control::placeholder {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .courses-page-background .form-control:focus {
+  background-color: var(--card-bg) !important;
+  border-color: #3b82f6 !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+}
+
+[data-theme="dark"] .courses-page-background .form-select {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .courses-page-background .form-select:focus {
+  background-color: var(--card-bg) !important;
+  border-color: #3b82f6 !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+}
+
+/* Input group text (search icon) */
+[data-theme="dark"] .courses-page-background .input-group-text {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Course cards in courses page - preserve your beautiful styling while making them visible */
+[data-theme="dark"] .courses-page-background .course-card-new {
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-primary) !important;
+  /* Your original border-radius: 15px and hover effects are preserved */
+}
+
+[data-theme="dark"] .courses-page-background .course-card-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .courses-page-background .course-card-text {
+  color: var(--text-secondary) !important;
+}
+
+/* Spinner in dark mode */
+[data-theme="dark"] .courses-page-background .spinner-border {
+  color: var(--text-primary) !important;
+}
+
+/* Alert styling in dark mode */
+[data-theme="dark"] .courses-page-background .alert {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .courses-page-background .alert-danger {
+  background-color: #2d1b1b !important;
+  border-color: #5d2b2b !important;
+  color: #ff6b6b !important;
+}
+
+/* Course card buttons - your original styling is preserved automatically */
+[data-theme="dark"] .courses-page-background .btn-outline-primary {
+  color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+[data-theme="dark"] .courses-page-background .btn-outline-primary:hover {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+/* UNIVERSAL BUTTON STYLING FOR DARK MODE - ALL PAGES */
+/* View buttons and other secondary buttons */
+[data-theme="dark"] .btn-secondary {
+  background-color: #4a5568 !important;
+  border-color: #4a5568 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background-color: #2d3748 !important;
+  border-color: #2d3748 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-outline-secondary {
+  color: #a0aec0 !important;
+  border-color: #4a5568 !important;
+  background-color: transparent !important;
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+  background-color: #4a5568 !important;
+  border-color: #4a5568 !important;
+  color: #ffffff !important;
+}
+
+/* Primary buttons - enhanced visibility */
+[data-theme="dark"] .btn-primary {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-primary:hover {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+/* Success buttons */
+[data-theme="dark"] .btn-success {
+  background-color: #10b981 !important;
+  border-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-success:hover {
+  background-color: #059669 !important;
+  border-color: #059669 !important;
+  color: #ffffff !important;
+}
+
+/* Warning buttons */
+[data-theme="dark"] .btn-warning {
+  background-color: #f59e0b !important;
+  border-color: #f59e0b !important;
+  color: #000000 !important;
+}
+
+[data-theme="dark"] .btn-warning:hover {
+  background-color: #d97706 !important;
+  border-color: #d97706 !important;
+  color: #000000 !important;
+}
+
+/* Danger buttons */
+[data-theme="dark"] .btn-danger {
+  background-color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-danger:hover {
+  background-color: #dc2626 !important;
+  border-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+/* Info buttons */
+[data-theme="dark"] .btn-info {
+  background-color: #06b6d4 !important;
+  border-color: #06b6d4 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-info:hover {
+  background-color: #0891b2 !important;
+  border-color: #0891b2 !important;
+  color: #ffffff !important;
+}
+
+/* Light buttons - better contrast in dark mode */
+[data-theme="dark"] .btn-light {
+  background-color: #374151 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+[data-theme="dark"] .btn-light:hover {
+  background-color: #4b5563 !important;
+  border-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+/* Dark buttons */
+[data-theme="dark"] .btn-dark {
+  background-color: #1f2937 !important;
+  border-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+[data-theme="dark"] .btn-dark:hover {
+  background-color: #111827 !important;
+  border-color: #111827 !important;
+  color: #f9fafb !important;
+}
+
+/* IMPROVED VIEW DETAILS BUTTONS - FOR BOTH LIGHT AND DARK MODES */
+/* Enhanced view buttons styling */
+.btn-outline-secondary {
+  font-weight: 500;
+  border-width: 2px;
+  padding: 8px 20px;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Light mode view buttons */
+:root .btn-outline-secondary {
+  color: #495057 !important;
+  border-color: #6c757d !important;
+  background-color: transparent !important;
+}
+
+:root .btn-outline-secondary:hover {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+/* Dark mode view buttons - enhanced visibility */
+[data-theme="dark"] .btn-outline-secondary {
+  color: #e2e8f0 !important;
+  border-color: #64748b !important;
+  background-color: transparent !important;
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+  background-color: #64748b !important;
+  border-color: #64748b !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.4);
+}
+
+/* Alternative button styling for better visibility */
+.btn-view-details {
+  background-color: #f8f9fa !important;
+  border: 2px solid #dee2e6 !important;
+  color: #495057 !important;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-view-details:hover {
+  background-color: #e9ecef !important;
+  border-color: #adb5bd !important;
+  color: #212529 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] .btn-view-details {
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+[data-theme="dark"] .btn-view-details:hover {
+  background-color: #4b5563 !important;
+  border-color: #6b7280 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* LESSON PAGE DARK MODE STYLING */
+/* Fix Back to Course button visibility and improve lesson list */
+[data-theme="dark"] .card-footer .btn-outline-success {
+  background-color: #10b981 !important;
+  border-color: #10b981 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="dark"] .card-footer .btn-outline-success:hover {
+  background-color: #059669 !important;
+  border-color: #059669 !important;
+  color: #ffffff !important;
+}
+
+/* Discussions button in lesson page */
+[data-theme="dark"] .card-footer .btn-outline-primary {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="dark"] .card-footer .btn-outline-primary:hover {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+/* Previous button - make it solid by default */
+[data-theme="dark"] .btn-outline-secondary {
+  background-color: #6b7280 !important;
+  border-color: #6b7280 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+  background-color: #4b5563 !important;
+  border-color: #4b5563 !important;
+  color: #ffffff !important;
+}
+
+/* Light mode - make previous button solid too */
+.btn-outline-secondary {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+  color: #ffffff !important;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #5a6268 !important;
+  border-color: #5a6268 !important;
+  color: #ffffff !important;
+}
+
+/* Lesson list improvements - better colors for dark mode */
+[data-theme="dark"] .list-group-item {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .list-group-item:hover {
+  background-color: var(--bg-tertiary) !important;
+}
+
+[data-theme="dark"] .list-group-item.active {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+/* Better lesson list colors for light mode too */
+.list-group-item.active {
+  background-color: #0d6efd !important;
+  border-color: #0d6efd !important;
+  color: #ffffff !important;
+}
+
+.list-group-item:hover {
+  background-color: #f8f9fa !important;
+}
+
+/* Progress bar in lesson page */
+[data-theme="dark"] .progress {
+  background-color: var(--bg-tertiary) !important;
+}
+
+[data-theme="dark"] .progress-bar {
+  background-color: #3b82f6 !important;
+}
+
+/* Lesson page card headers */
+[data-theme="dark"] .card-header {
+  background-color: var(--bg-tertiary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Lesson video iframe styling */
+[data-theme="dark"] iframe {
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Congratulations message styling */
+[data-theme="dark"] .alert-success {
+  background-color: #065f46 !important;
+  border-color: #10b981 !important;
+  color: #d1fae5 !important;
+}
+
+[data-theme="dark"] .courses-page-background .btn-outline-primary:hover {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+/* Enrolled badge styling */
+[data-theme="dark"] .courses-page-background .badge {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .courses-page-background .badge.bg-success {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+/* Any remaining text elements */
+[data-theme="dark"] .courses-page-background .text-muted {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .courses-page-background .text-center {
+  color: var(--text-primary) !important;
+}
+
+/* HOMEPAGE DARK MODE STYLING */
+/* Hero section - better text contrast for dark mode */
+[data-theme="dark"] .hero-section h1 {
+  color: #ffffff !important;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .hero-section .lead {
+  color: #f0f2f5 !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .hero-section .btn-light {
+  background-color: #f8f9fa !important;
+  border-color: #f8f9fa !important;
+  color: #2e7d32 !important;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .hero-section .btn-light:hover {
+  background-color: #e9ecef !important;
+  border-color: #e9ecef !important;
+  color: #1b5e20 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Content sections below hero */
+[data-theme="dark"] .content-section-wrapper {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .about-section {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .about-section h2 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .about-section .text-muted {
+  color: var(--text-secondary) !important;
+}
+
+/* CTA section */
+[data-theme="dark"] .cta-section {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .cta-section h2 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .cta-section p {
+  color: var(--text-secondary) !important;
+}
+
+/* Featured courses section */
+[data-theme="dark"] .content-section-wrapper .course-card-new {
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .content-section-wrapper .course-card-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .content-section-wrapper .course-card-text {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .content-section-wrapper h2,
+[data-theme="dark"] .content-section-wrapper h3 {
+  color: var(--text-primary) !important;
+}
+
+/* Any containers and rows in homepage */
+[data-theme="dark"] .content-section-wrapper .container,
+[data-theme="dark"] .about-section .container,
+[data-theme="dark"] .cta-section .container {
+  color: var(--text-primary) !important;
+}
+
+/* Image styling for dark mode */
+[data-theme="dark"] .about-section img {
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* FOOTER DARK MODE STYLING */
+[data-theme="dark"] footer#footer-contact.bg-dark {
+  background: linear-gradient(135deg, #1a1d29 0%, #2f3349 100%) !important;
+  border-top: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] footer#footer-contact h5,
+[data-theme="dark"] footer#footer-contact h6 {
+  color: #f0f2f5 !important;
+}
+
+[data-theme="dark"] footer#footer-contact .text-white-50 {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] footer#footer-contact .nav-link {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] footer#footer-contact .nav-link:hover {
+  color: #f0f2f5 !important;
+  text-decoration: underline;
+}
+
+[data-theme="dark"] footer#footer-contact .btn-outline-light {
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] footer#footer-contact .btn-outline-light:hover {
+  background-color: var(--bg-tertiary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] footer#footer-contact hr {
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] footer#footer-contact .copyright-text {
+  color: var(--text-muted) !important;
+}

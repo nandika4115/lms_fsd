@@ -1,8 +1,8 @@
 // server/middleware/authMiddleware.js
 const jwt = require("jsonwebtoken");
 
-// NOTE: keep the same secret you used earlier. In production move this to process.env
-const JWT_SECRET = "your_super_secret_key_that_is_long_and_random";
+// Prefer reading the secret from environment; fallback to the old default for safety
+const JWT_SECRET = process.env.JWT_SECRET || "your_super_secret_key_that_is_long_and_random";
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];

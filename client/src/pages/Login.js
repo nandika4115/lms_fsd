@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
-import { Form, Button, Alert } from 'react-bootstrap';
+import { Form, Button, Alert, Nav } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from './logo.png';
 import AuthContext from '../context/AuthContext';
@@ -8,7 +8,7 @@ import AuthContext from '../context/AuthContext';
 const API_URL = "http://localhost:5000";
 
 function Login() {
-  // State updated to use 'email' specifically
+  const [loginMode, setLoginMode] = useState('user'); // 'user' or 'admin'
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -26,14 +26,23 @@ function Login() {
       return;
     }
     try {
-      // The formData object now correctly sends { email, password }
-      const res = await axios.post(`${API_URL}/api/auth/login`, formData);
-      
-      if (res.data.token) {
-        login(res.data.token);
-        navigate('/');
+      if (loginMode === 'user') {
+        // User login
+        const res = await axios.post(`${API_URL}/api/auth/login`, formData);
+        if (res.data.token) {
+          login(res.data.token);
+          navigate('/dashboard');
+        }
+      } else {
+        // Admin login
+        const res = await axios.post(`${API_URL}/api/admin-auth/login`, formData);
+        if (res.data.token) {
+          localStorage.setItem('adminToken', res.data.token);
+          localStorage.setItem('adminId', res.data.adminId);
+          localStorage.setItem('adminName', res.data.adminName);
+          navigate('/admin');
+        }
       }
-
     } catch (err) {
       setError(err.response?.data?.message || "Invalid login credentials.");
     }
@@ -71,8 +80,32 @@ function Login() {
           backdropFilter: 'blur(10px)',
           border: '1px solid rgba(255, 255, 255, 0.2)'
         }}>
-          <h2 className="text-center mb-2">Welcome Back!</h2>
-          <p className="text-muted mb-4 text-center">Please login to your account.</p>
+          {/* Toggle Tabs */}
+          <div className="mb-4 d-flex gap-2">
+            <Button 
+              variant={loginMode === 'user' ? 'primary' : 'light'}
+              onClick={() => setLoginMode('user')}
+              className="flex-grow-1"
+              style={{ borderRadius: '10px', fontWeight: '600' }}
+            >
+              User Login
+            </Button>
+            <Button 
+              variant={loginMode === 'admin' ? 'primary' : 'light'}
+              onClick={() => setLoginMode('admin')}
+              className="flex-grow-1"
+              style={{ borderRadius: '10px', fontWeight: '600' }}
+            >
+              Admin Login
+            </Button>
+          </div>
+
+          <h2 className="text-center mb-2">
+            {loginMode === 'user' ? 'Welcome Back!' : 'Admin Portal'}
+          </h2>
+          <p className="text-muted mb-4 text-center">
+            {loginMode === 'user' ? 'Please login to your account.' : 'Enter your admin credentials.'}
+          </p>
           
           <Form onSubmit={handleSubmit}>
             {error && <Alert variant="danger">{error}</Alert>}
@@ -111,9 +144,11 @@ function Login() {
               />
             </Form.Group>
             
-            <div className="text-end mb-3">
-               <a href="#!" className="text-decoration-none">Forgot Password?</a>
-            </div>
+            {loginMode === 'user' && (
+              <div className="text-end mb-3">
+                <a href="#!" className="text-decoration-none">Forgot Password?</a>
+              </div>
+            )}
 
             <Button 
               variant="primary" 
@@ -126,13 +161,15 @@ function Login() {
                 boxShadow: '0 4px 15px rgba(0, 123, 255, 0.3)'
               }}
             >
-              Login
+              {loginMode === 'user' ? 'Login' : 'Admin Login'}
             </Button>
 
-            <div className="mt-4 text-center">
-              <span className="text-muted">Don't have an account? </span>
-              <Link to="/register" className="fw-bold text-decoration-none">Sign up</Link>
-            </div>
+            {loginMode === 'user' && (
+              <div className="mt-4 text-center">
+                <span className="text-muted">Don't have an account? </span>
+                <Link to="/register" className="fw-bold text-decoration-none">Sign up</Link>
+              </div>
+            )}
           </Form>
         </div>
       </div>

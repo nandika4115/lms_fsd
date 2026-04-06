@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Container, Row, Col, Card, Button, Spinner, Alert, ListGroup, ProgressBar } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Spinner, Alert, ListGroup, ProgressBar, Modal } from 'react-bootstrap';
 import { CheckCircleFill, Circle, PlayBtn, ArrowLeft, ArrowRight, ChatDots } from 'react-bootstrap-icons';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
@@ -32,6 +32,8 @@ function LessonPage() {
     const [lessons, setLessons] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
     const { isAuthLoading } = useContext(AuthContext); // Get the loading status
     const navigate = useNavigate();
 
@@ -97,7 +99,8 @@ function LessonPage() {
             setCurrentLesson(prev => ({ ...prev, is_completed: true }));
             setLessons(prev => prev.map(l => l.id === parseInt(lessonId) ? { ...l, is_completed: true } : l));
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to mark lesson as complete.");
+            setModalMessage(err.response?.data?.message || "Failed to mark lesson as complete.");
+            setShowModal(true);
         }
     };
 
@@ -251,6 +254,23 @@ function LessonPage() {
                     </Card>
                 </Col>
             </Row>
+
+            {/* Error Modal */}
+            <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+                <Modal.Header closeButton style={{ backgroundColor: '#f8d7da', borderBottom: '1px solid #f5c6cb' }}>
+                    <Modal.Title style={{ color: '#721c24', fontWeight: 'bold' }}>
+                        ❌ Error
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body style={{ color: '#721c24', fontSize: '1.1rem' }}>
+                    {modalMessage}
+                </Modal.Body>
+                <Modal.Footer style={{ backgroundColor: '#f8f9fa', borderTop: '1px solid #dee2e6' }}>
+                    <Button variant="danger" onClick={() => setShowModal(false)} style={{ borderRadius: '8px' }}>
+                        OK
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </Container>
     );
 }

@@ -2,9 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const db = require('./config/db'); // Your PostgreSQL connection pool
+const connectMongo = require('./config/db.mongo');
 
 // --- Import all your route files ---
 const authRoutes = require('./routes/authRoutes');
+const adminAuthRoutes = require('./routes/adminAuthRoutes');
 const courseRoutes = require('./routes/courseRoutes');
 const lessonRoutes = require('./routes/lessonRoutes');
 const enrollmentRoutes = require('./routes/enrollmentRoutes');
@@ -13,6 +15,8 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const certificateRoutes = require('./routes/certificateRoutes');
 // Add this import with your other route imports
 const discussionRoutes = require('./routes/discussionRoutes');
+// Admin routes (MongoDB-backed)
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -23,6 +27,7 @@ app.use(express.json());
 
 // --- Define your API routes ---
 app.use('/api/auth', authRoutes);
+app.use('/api/admin-auth', adminAuthRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/lessons', lessonRoutes);
 app.use('/api/enrollments', enrollmentRoutes);
@@ -31,6 +36,8 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/certificates', certificateRoutes);
 // Add this route with your other API routes
 app.use('/api/discussions', discussionRoutes);
+// Admin API (reads/writes to MongoDB and proxies Postgres user queries)
+app.use('/api/admin', adminRoutes);
 
 // Test PostgreSQL database connection
 const testConnection = async () => {
@@ -46,6 +53,9 @@ const testConnection = async () => {
 
 // Test the connection
 testConnection();
+
+// Connect to MongoDB (Mongoose)
+connectMongo();
 
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);

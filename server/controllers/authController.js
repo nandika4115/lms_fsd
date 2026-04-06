@@ -19,6 +19,9 @@ exports.register = (req, res) => {
 
     const hashedPassword = bcrypt.hashSync(password, 10);
 
+    // If a user registers as an instructor, mark them as pending for admin approval
+    const roleToSave = role === 'instructor' ? 'pending_instructor' : role;
+
     // 2. PostgreSQL query with RETURNING clause to get the new user ID
     const query = `
         INSERT INTO users 
@@ -27,29 +30,48 @@ exports.register = (req, res) => {
         RETURNING id
     `;
     
-    // 3. Add all new values to the query's parameter array
+    // 3. Convert empty strings to null for optional fields
     const values = [
-        username, email, hashedPassword, role,
-        firstName, lastName, phoneNumber, age, currentActivity, activityPlace
+        username, 
+        email, 
+        hashedPassword, 
+        roleToSave,
+        firstName, 
+        lastName, 
+        phoneNumber || null,  // Convert empty string to null
+        age ? parseInt(age) : null,  // Convert to integer or null
+        currentActivity || null,
+        activityPlace || null
     ];
 
     db.query(query, values, (err, result) => {
         if (err) {
+            console.error("❌ Registration query error:", err);
+            console.error("Error code:", err.code);
+            console.error("Error message:", err.message);
+            console.error("Query values:", values);
+            
             // PostgreSQL duplicate key error code
             if (err.code === '23505') {
                 return res.status(409).json({ message: "An account with this email already exists." });
             }
-            return res.status(500).json({ error: err.message });
+            return res.status(500).json({ error: err.message, details: err.detail });
         }
 
         // PostgreSQL returns inserted data in result.rows
-        const newUserId = result.rows.id;
+        const newUserId = result.rows[0]?.id;
+
+        // If the user is a pending instructor, do not auto-login; inform them to wait for approval
+        if (roleToSave === 'pending_instructor') {
+            return res.status(201).json({ message: 'Instructor registration received. Awaiting admin approval.' });
+        }
+
         const token = jwt.sign(
-            { id: newUserId, username: username, role: role },
+            { id: newUserId, username: username, role: roleToSave },
             JWT_SECRET,
             { expiresIn: "1d" }
         );
-        res.status(201).json({ token, role });
+        res.status(201).json({ token, role: roleToSave });
     });
 };
 
@@ -92,6 +114,15 @@ exports.login = (req, res) => {
             passwordStart: user.password ? user.password.substring(0, 10) + '...' : 'NULL'
         });
         
+        // Block login for pending/rejected instructor accounts before password check
+        if (user.role === 'pending_instructor') {
+            console.log("⏳ Instructor account pending approval for:", email);
+            return res.status(403).json({ message: "Your instructor account is pending admin approval." });
+        }
+        if (user.role === 'rejected') {
+            return res.status(403).json({ message: "Your registration was rejected by the admin." });
+        }
+
         // Validate inputs
         if (!password) {
             console.error("❌ No password provided in request");

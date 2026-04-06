@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from './pages/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import CoursesPage from './pages/CoursesPage';
 import CourseDetail from './pages/CourseDetail';
 import ProfilePage from './pages/ProfilePage';
@@ -14,6 +15,7 @@ import AuthContext from './context/AuthContext';
 import CreateCoursePage from './pages/CreateCoursePage';
 // import ManageCoursePage from './pages/ManageCoursePage';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminProtectedRoute from './components/AdminProtectedRoute';
 import EditCoursePage from './pages/EditCoursePage';
 import EditProfilePage from './pages/EditProfilePage'; // 1. Import the new page
 import ManageCoursePage from './pages/ManageCoursePage';
@@ -142,11 +144,25 @@ function AppNavbar() {
     const { user, logout } = useContext(AuthContext);
     const navigate = useNavigate();
     const [showSidebar, setShowSidebar] = useState(false);
+    
+    // Check if admin is logged in
+    const adminToken = localStorage.getItem('adminToken');
+    const adminName = localStorage.getItem('adminName');
+    
     const handleSidebarClose = () => setShowSidebar(false);
     const handleSidebarShow = () => setShowSidebar(true);
+    
     const handleLogout = () => {
         logout(() => navigate('/'));
     };
+
+    const handleAdminLogout = () => {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminId');
+        localStorage.removeItem('adminName');
+        navigate('/login');
+    };
+
     return (
         <>
         <Navbar expand={false} className="app-navbar shadow-sm sticky-top">
@@ -155,10 +171,16 @@ function AppNavbar() {
                 <Button onClick={handleSidebarShow} className="sidebar-toggle-btn me-3">
                     <List size={30} />
                 </Button>
-                <Navbar.Brand as={Link} to="/">EduLearnPro</Navbar.Brand>
+                <Navbar.Brand as={Link} to={adminToken ? '/admin' : '/'}>EduLearnPro</Navbar.Brand>
               </div>
               <Nav>
-                  {user ? (
+                  {adminToken ? (
+                  <div className="d-none d-lg-flex align-items-center">
+                      <span className="me-3 text-muted">Admin: {adminName}</span>
+                      <Button as={Link} to="/admin" variant="light" className="me-3 dashboard-btn">Dashboard</Button>
+                      <Button variant="danger" onClick={handleAdminLogout} className="me-3">Logout</Button>
+                  </div>
+                  ) : user ? (
                   <div className="d-none d-lg-flex align-items-center">
                       <Button as={Link} to="/dashboard" variant="light" className="me-3 dashboard-btn">Dashboard</Button>
                       <Button variant="danger" onClick={handleLogout} className="me-3">Logout</Button>
@@ -214,6 +236,9 @@ function AppContent() {
             <Route path="/courses" element={<CoursesPage />} />
             <Route path="/courses/:id" element={<CourseDetail />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route element={<AdminProtectedRoute />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+            </Route>
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonPage />} />
             <Route path="/courses/:courseId/certificate" element={<CertificatePage />} />

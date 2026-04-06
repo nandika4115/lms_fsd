@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Container, Row, Col, Card, Button, Spinner, Alert, ProgressBar } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Spinner, Alert, ProgressBar, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
@@ -403,6 +403,9 @@ const StudentDashboard = ({ data }) => {
 // --- The Final, Enhanced Instructor Dashboard Component ---
 const InstructorDashboard = ({ data }) => {
     const [courses, setCourses] = useState(data);
+    const [showModal, setShowModal] = useState(false);
+    const [modalType, setModalType] = useState('success'); // 'success' or 'error'
+    const [modalMessage, setModalMessage] = useState('');
 
     useEffect(() => { setCourses(data); }, [data]);
 
@@ -417,10 +420,14 @@ const InstructorDashboard = ({ data }) => {
             });
             // Remove the deleted course from state
             setCourses(prev => prev.filter(course => course.course_id !== courseId));
-            alert('Course deleted successfully');
+            setModalMessage('Course deleted successfully');
+            setModalType('success');
+            setShowModal(true);
         } catch (error) {
             console.error('Delete error:', error);
-            alert('Failed to delete course');
+            setModalMessage('Failed to delete course');
+            setModalType('error');
+            setShowModal(true);
         }
     };
 
@@ -439,10 +446,14 @@ const InstructorDashboard = ({ data }) => {
                     ? { ...course, status: newStatus }
                     : course
             ));
-            alert(`Course ${newStatus === 'published' ? 'published' : 'unpublished'} successfully`);
+            setModalMessage(`Course ${newStatus === 'published' ? 'published' : 'unpublished'} successfully`);
+            setModalType('success');
+            setShowModal(true);
         } catch (error) {
             console.error('Status update error:', error);
-            alert('Failed to update course status');
+            setModalMessage('Failed to update course status');
+            setModalType('error');
+            setShowModal(true);
         }
     };
 
@@ -454,7 +465,8 @@ const InstructorDashboard = ({ data }) => {
     const overallCompletionRate = totalEnrollments > 0 ? (totalCompletions / totalEnrollments) * 100 : 0;
 
     return (
-        <div>
+        <>
+            <div>
             {/* --- Enhanced Welcome Header --- */}
             <h1 className="mb-5 fw-bold" style={{ 
                 background: 'linear-gradient(135deg, #667eea, #764ba2)',
@@ -788,7 +800,25 @@ const InstructorDashboard = ({ data }) => {
                     );
                 })}
             </div>
-        </div>
+            </div>
+
+        {/* Success/Error Modal */}
+        <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+            <Modal.Header closeButton style={{ backgroundColor: modalType === 'success' ? '#d4edda' : '#f8d7da', borderBottom: modalType === 'success' ? '1px solid #c3e6cb' : '1px solid #f5c6cb' }}>
+                <Modal.Title style={{ color: modalType === 'success' ? '#155724' : '#721c24', fontWeight: 'bold' }}>
+                    {modalType === 'success' ? '✅ Success' : '❌ Error'}
+                </Modal.Title>
+            </Modal.Header>
+            <Modal.Body style={{ color: modalType === 'success' ? '#155724' : '#721c24', fontSize: '1.1rem' }}>
+                {modalMessage}
+            </Modal.Body>
+            <Modal.Footer style={{ backgroundColor: '#f8f9fa', borderTop: '1px solid #dee2e6' }}>
+                <Button variant={modalType === 'success' ? 'success' : 'danger'} onClick={() => setShowModal(false)} style={{ borderRadius: '8px' }}>
+                    OK
+                </Button>
+            </Modal.Footer>
+        </Modal>
+        </>
     );
 };
 // --- Main Dashboard Page Component (No changes needed) ---

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Container, Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Spinner, Alert, Modal } from 'react-bootstrap';
 import { Book, CodeSlash, Brush, CollectionPlay, CheckCircleFill, PlayCircleFill, AwardFill } from 'react-bootstrap-icons';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
@@ -20,6 +20,8 @@ function CourseDetail() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [hasCertificate, setHasCertificate] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
     const { user, enrolledCourseIds } = useContext(AuthContext);
     const navigate = useNavigate();
 
@@ -68,7 +70,8 @@ function CourseDetail() {
 
     const handleCertificateAction = async () => {
         if (!isCourseComplete && !hasCertificate) {
-            alert("You must complete all lessons before getting a certificate.");
+            setModalMessage("You must complete all lessons before getting a certificate.");
+            setShowModal(true);
             return;
         }
         
@@ -83,7 +86,8 @@ function CourseDetail() {
             await axios.post(`${API_URL}/api/certificates/course/${id}`, {}, { headers: { Authorization: `Bearer ${token}` } });
             navigate(`/courses/${id}/certificate`);
         } catch (err) {
-            alert(err.response?.data?.message || "Could not generate or view the certificate.");
+            setModalMessage(err.response?.data?.message || "Could not generate or view the certificate.");
+            setShowModal(true);
         }
     };
 
@@ -157,6 +161,23 @@ function CourseDetail() {
                     </Row>
                 </Container>
             </div>
+
+            {/* Certificate Modal */}
+            <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+                <Modal.Header closeButton style={{ backgroundColor: '#f8d7da', borderBottom: '1px solid #f5c6cb' }}>
+                    <Modal.Title style={{ color: '#721c24', fontWeight: 'bold' }}>
+                        ⚠️ Notice
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body style={{ color: '#721c24', fontSize: '1.1rem' }}>
+                    {modalMessage}
+                </Modal.Body>
+                <Modal.Footer style={{ backgroundColor: '#f8f9fa', borderTop: '1px solid #dee2e6' }}>
+                    <Button variant="secondary" onClick={() => setShowModal(false)} style={{ borderRadius: '8px' }}>
+                        OK
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 }

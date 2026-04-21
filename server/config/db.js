@@ -7,7 +7,7 @@ const pool = new Pool({
   user: "postgres",        
   password: "password",            
   database: "edu_platform",
-  port: 5432,             
+  port: 5432,
   max: 10,                // Reduced from 20
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,

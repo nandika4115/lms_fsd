@@ -20,6 +20,7 @@ function Register() {
         activityPlace: ""
     });
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const { login } = useContext(AuthContext);
 
@@ -30,17 +31,22 @@ function Register() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setLoading(true);
 
         try {
-            // Send the entire formData object, which now matches the backend
             const res = await axios.post(`${API_URL}/api/auth/register`, formData);
-            
-            // The auto-login logic
+
+            // New flow: redirect to email verification page
+            if (res.data.requiresVerification) {
+                navigate('/verify-email');
+                return;
+            }
+
+            // Fallback: if the server returned a token (shouldn't happen with new flow)
             if (res.data.token) {
                 login(res.data.token);
-                navigate('/'); // Redirect to the homepage on successful registration
+                navigate('/');
             } else {
-                // Fallback in case the token isn't returned
                 navigate('/login');
             }
 
@@ -48,6 +54,7 @@ function Register() {
             console.error("Registration error:", err);
             setError(err.response?.data?.message || "Something went wrong during registration.");
         }
+        setLoading(false);
     };
 
     return (
@@ -131,8 +138,8 @@ function Register() {
                         </Form.Select>
                     </Form.Group>
 
-                    <Button variant="primary" type="submit" className="w-100 py-2">
-                        Create Account
+                    <Button variant="primary" type="submit" className="w-100 py-2" disabled={loading}>
+                        {loading ? 'Creating Account...' : 'Create Account'}
                     </Button>
 
                     <div className="mt-4 text-center">
@@ -146,4 +153,3 @@ function Register() {
 }
 
 export default Register;
-

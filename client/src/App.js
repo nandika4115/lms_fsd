@@ -22,6 +22,8 @@ import ManageCoursePage from './pages/ManageCoursePage';
 import LessonPage from './pages/LessonPage';
 import CertificatePage from './pages/CertificatePage';
 import CourseDiscussion from './components/CourseDiscussion';
+import VerifyEmail from './pages/VerifyEmail';
+import MfaSetup from './pages/MfaSetup';
 import InstructorDiscussions from './components/InstructorDiscussions';
 import { ThemeProvider } from './context/ThemeContext';
 import ThemeToggle from './components/ThemeToggle';
@@ -233,6 +235,7 @@ function AppContent() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/courses" element={<CoursesPage />} />
             <Route path="/courses/:id" element={<CourseDetail />} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -249,6 +252,7 @@ function AppContent() {
                 <Route path="/instructor/discussions" element={<InstructorDiscussions />} />
             </Route>
             <Route path="/profile/edit" element={<EditProfilePage />}/>
+            <Route path="/mfa-setup" element={<MfaSetup />} />
             <Route path="/courses/:courseId/discussions" element={<CourseDiscussion />} />
         </Routes>
       </main>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Spinner, Alert, Button, Badge, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { PersonCircle } from 'react-bootstrap-icons';
+import { PersonCircle, ShieldLock, ShieldCheck, ShieldExclamation } from 'react-bootstrap-icons';
 import axios from 'axios';
 
 const API_URL = "http://localhost:5000";
@@ -18,6 +18,11 @@ function ProfilePage() {
     const [profileData, setProfileData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [mfaStatus, setMfaStatus] = useState(false);
+    const [disablingMfa, setDisablingMfa] = useState(false);
+    const [disablePassword, setDisablePassword] = useState('');
+    const [showDisableForm, setShowDisableForm] = useState(false);
+    const [mfaMessage, setMfaMessage] = useState('');
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -32,6 +37,7 @@ function ProfilePage() {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setProfileData(response.data);
+                setMfaStatus(response.data.mfa_enabled || false);
             } catch (err) {
                 setError(err.response?.data?.message || "Could not load profile data.");
             } finally {
@@ -105,6 +111,100 @@ function ProfilePage() {
                                     <ProfileField label="Member Since" value={new Date(profileData.created_at).toLocaleDateString()} />
                                 </Col>
                             </Row>
+                        </div>
+
+                        {/* Security Section */}
+                        <div className="mt-4 pt-3">
+                            <h6 className="text-muted mb-3"><ShieldLock className="me-2" />Security</h6>
+                            <Card className="border" style={{ borderRadius: '12px' }}>
+                                <Card.Body className="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div className="d-flex align-items-center mb-1">
+                                            {mfaStatus ? (
+                                                <ShieldCheck size={20} className="text-success me-2" />
+                                            ) : (
+                                                <ShieldExclamation size={20} className="text-warning me-2" />
+                                            )}
+                                            <strong>Two-Factor Authentication</strong>
+                                        </div>
+                                        <small className="text-muted">
+                                            {mfaStatus 
+                                                ? 'MFA is enabled — your account has extra protection.' 
+                                                : 'Add an extra layer of security with an authenticator app.'
+                                            }
+                                        </small>
+                                    </div>
+                                    <div>
+                                        {mfaStatus ? (
+                                            <Button 
+                                                variant="outline-danger" 
+                                                size="sm"
+                                                onClick={() => setShowDisableForm(!showDisableForm)}
+                                                style={{ borderRadius: '8px' }}
+                                            >
+                                                Disable
+                                            </Button>
+                                        ) : (
+                                            <Button 
+                                                as={Link} 
+                                                to="/mfa-setup" 
+                                                variant="primary" 
+                                                size="sm"
+                                                style={{ borderRadius: '8px', fontWeight: '600' }}
+                                            >
+                                                Enable MFA
+                                            </Button>
+                                        )}
+                                    </div>
+                                </Card.Body>
+                                {showDisableForm && (
+                                    <Card.Footer style={{ background: '#fff5f5', borderTop: '1px solid #ffcdd2' }}>
+                                        <p className="small text-muted mb-2">Enter your password to disable MFA:</p>
+                                        <div className="d-flex gap-2">
+                                            <input
+                                                type="password"
+                                                className="form-control form-control-sm"
+                                                placeholder="Your password"
+                                                value={disablePassword}
+                                                onChange={(e) => setDisablePassword(e.target.value)}
+                                                style={{ borderRadius: '8px', maxWidth: '250px' }}
+                                            />
+                                            <Button
+                                                variant="danger"
+                                                size="sm"
+                                                disabled={disablingMfa || !disablePassword}
+                                                onClick={async () => {
+                                                    setDisablingMfa(true);
+                                                    setMfaMessage('');
+                                                    try {
+                                                        const token = localStorage.getItem('token');
+                                                        await axios.post(`${API_URL}/api/auth/disable-mfa`, 
+                                                            { password: disablePassword },
+                                                            { headers: { Authorization: `Bearer ${token}` } }
+                                                        );
+                                                        setMfaStatus(false);
+                                                        setShowDisableForm(false);
+                                                        setDisablePassword('');
+                                                        setMfaMessage('MFA disabled successfully.');
+                                                    } catch (err) {
+                                                        setMfaMessage(err.response?.data?.message || 'Failed to disable MFA.');
+                                                    }
+                                                    setDisablingMfa(false);
+                                                }}
+                                                style={{ borderRadius: '8px' }}
+                                            >
+                                                {disablingMfa ? 'Disabling...' : 'Confirm Disable'}
+                                            </Button>
+                                        </div>
+                                        {mfaMessage && <small className="text-danger mt-2 d-block">{mfaMessage}</small>}
+                                    </Card.Footer>
+                                )}
+                            </Card>
+                            {mfaMessage && !showDisableForm && (
+                                <Alert variant="success" className="mt-2" style={{ borderRadius: '10px', fontSize: '14px' }}>
+                                    {mfaMessage}
+                                </Alert>
+                            )}
                         </div>
                     </Card.Body>
                 </Card>

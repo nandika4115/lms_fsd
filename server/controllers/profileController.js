@@ -11,6 +11,10 @@ const getProfile = (req, res) => {
 
         const userProfile = results.rows[0];
         delete userProfile.password;
+        delete userProfile.mfa_secret;
+        delete userProfile.mfa_backup_codes;
+        delete userProfile.verification_token;
+        delete userProfile.verification_token_expires;
         res.json(userProfile);
     });
 };

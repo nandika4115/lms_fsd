@@ -2,8 +2,8 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  studentChatbot,
-  instructorSummary,
+    studentChatbot,
+    instructorSummary,
 } = require("../controllers/aiController");
 
 router.post("/student-chat", studentChatbot);

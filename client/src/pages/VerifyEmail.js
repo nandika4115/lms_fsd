@@ -3,8 +3,7 @@ import axios from 'axios';
 import { Container, Alert, Button, Form, Spinner } from 'react-bootstrap';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { EnvelopeCheck, CheckCircleFill, XCircleFill, ArrowRepeat } from 'react-bootstrap-icons';
-
-const API_URL = "http://localhost:5000";
+import API_URL from '../config';
 
 function VerifyEmail() {
     const [searchParams] = useSearchParams();
@@ -16,19 +15,39 @@ function VerifyEmail() {
     const [resendEmail, setResendEmail] = useState('');
     const [resendStatus, setResendStatus] = useState('');
     const [countdown, setCountdown] = useState(0);
+    const [debugInfo, setDebugInfo] = useState('');
 
     // If there's a token in the URL, verify it
     useEffect(() => {
         if (token) {
             setStatus('verifying');
-            axios.get(`${API_URL}/api/auth/verify-email?token=${token}`)
+            setDebugInfo(`API URL: ${API_URL}`);
+            console.log('Starting verification with token:', token);
+            console.log('API URL:', API_URL);
+            
+            axios.get(`${API_URL}/api/auth/verify-email?token=${token}`, { timeout: 10000 })
                 .then(res => {
+                    console.log('Verification successful:', res.data);
                     setStatus('success');
                     setMessage(res.data.message);
+                    setDebugInfo('');
                 })
                 .catch(err => {
+                    console.error('Verification error:', err);
                     setStatus('error');
-                    setMessage(err.response?.data?.message || 'Verification failed. Please try again.');
+                    const errorMsg = err.response?.data?.message || 
+                                    err.message || 
+                                    'Verification failed. The backend server may not be running.';
+                    setMessage(errorMsg);
+                    
+                    // Debug info
+                    if (err.code === 'ECONNABORTED') {
+                        setDebugInfo('Request timeout - Backend server is not responding');
+                    } else if (err.code === 'ECONNREFUSED') {
+                        setDebugInfo('Connection refused - Backend server is not running');
+                    } else {
+                        setDebugInfo(`Error: ${err.code || 'Unknown error'}`);
+                    }
                 });
         }
     }, [token]);
@@ -72,6 +91,11 @@ function VerifyEmail() {
                             <Spinner animation="border" variant="primary" style={{ width: '3rem', height: '3rem' }} />
                             <h3 className="mt-4">Verifying your email...</h3>
                             <p className="text-muted">Please wait a moment.</p>
+                            {debugInfo && (
+                                <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '20px' }}>
+                                    <small>{debugInfo}</small>
+                                </p>
+                            )}
                         </>
                     )}
                     {status === 'success' && (
@@ -118,6 +142,11 @@ function VerifyEmail() {
                             </div>
                             <h3 style={{ color: '#c62828' }}>Verification Failed</h3>
                             <p className="text-muted mt-2 mb-4">{message}</p>
+                            {debugInfo && (
+                                <Alert variant="warning" className="mt-3 mb-3">
+                                    <small><strong>Debug Info:</strong> {debugInfo}</small>
+                                </Alert>
+                            )}
                             <Button
                                 variant="outline-primary"
                                 onClick={() => { setStatus('idle'); navigate('/verify-email'); }}

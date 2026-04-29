@@ -16,7 +16,7 @@ const achievementMap = {
     'BADGE_COLLECTOR_3': { icon: <Gem />, title: 'Badge Collector (3 Achievements)', color: '#d63384' },
 };
 // --- The New, Upgraded Student Dashboard Component ---
-const StudentDashboard = ({ data }) => {
+const StudentDashboard = ({ data, userName }) => {
     const { enrolledCourses, learningStreak, achievements, recommendations, certificateCount } = data;
 
     return (
@@ -29,7 +29,7 @@ const StudentDashboard = ({ data }) => {
             backgroundClip: 'text',
             fontSize: '2.5rem'
         }}>
-            Welcome to your Dashboard, nandu_04!
+            Welcome to your Dashboard, {userName}!
         </h1>
 
         {/* --- Enhanced Student Stats Section --- */}
@@ -865,7 +865,7 @@ function Dashboard() {
     return (
         <Container className="my-5">
             {user?.role === 'student' ? (
-                <StudentDashboard data={dashboardData} />
+                <StudentDashboard data={dashboardData} userName={user?.username} />
             ) : user?.role === 'instructor' ? (
                 <InstructorDashboard data={dashboardData} />
             ) : (

@@ -121,12 +121,43 @@ const rejectUser = (req, res) => {
 
 const deleteUser = (req, res) => {
   const userId = req.params.id;
+  console.log('🗑️ Delete request for user ID:', userId);
+  console.log('✅ Admin authenticated:', req.admin?.email);
   
-  // Delete the user from the database
-  db.query("DELETE FROM users WHERE id = $1 RETURNING id, username, email", [userId], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (!result.rows || result.rows.length === 0) return res.status(404).json({ message: 'User not found' });
-    res.json({ message: 'User deleted successfully', user: result.rows[0] });
+  // Delete enrollments first (foreign key constraint) - use student_id
+  db.query("DELETE FROM enrollments WHERE student_id = $1", [userId], (err1) => {
+    if (err1) {
+      console.error('❌ Error deleting enrollments:', err1.message);
+      return res.status(500).json({ error: 'Failed to delete enrollments: ' + err1.message });
+    }
+    
+    console.log('✅ Enrollments deleted for student:', userId);
+    
+    // Delete courses if instructor
+    db.query("DELETE FROM courses WHERE instructor_id = $1", [userId], (err2) => {
+      if (err2) {
+        console.error('❌ Error deleting courses:', err2.message);
+        return res.status(500).json({ error: 'Failed to delete courses: ' + err2.message });
+      }
+      
+      console.log('✅ Courses deleted for instructor:', userId);
+      
+      // Finally delete the user
+      db.query("DELETE FROM users WHERE id = $1 RETURNING id, username, email", [userId], (err3, result) => {
+        if (err3) {
+          console.error('❌ Error deleting user:', err3.message);
+          return res.status(500).json({ error: 'Failed to delete user: ' + err3.message });
+        }
+        
+        if (!result.rows || result.rows.length === 0) {
+          console.log('⚠️ User not found:', userId);
+          return res.status(404).json({ message: 'User not found' });
+        }
+        
+        console.log('✅ User successfully deleted:', result.rows[0]);
+        res.json({ message: 'User deleted successfully', user: result.rows[0] });
+      });
+    });
   });
 };
 

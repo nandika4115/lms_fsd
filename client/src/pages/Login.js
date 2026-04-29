@@ -5,8 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import logo from './logo.png';
 import AuthContext from '../context/AuthContext';
 import MfaVerify from '../components/MfaVerify';
-
-const API_URL = "http://localhost:5000";
+import API_URL from '../config';
 
 function Login() {
   const [loginMode, setLoginMode] = useState('user'); // 'user' or 'admin'

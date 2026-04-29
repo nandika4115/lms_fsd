@@ -30,7 +30,8 @@ const AdminDashboard = () => {
 
   const fetchAdmins = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/admin/admins`, { headers: { Authorization: `Bearer ${token}` } });
+      const freshToken = localStorage.getItem('adminToken');
+      const res = await axios.get(`${API_URL}/api/admin/admins`, { headers: { Authorization: `Bearer ${freshToken}` } });
       setAdmins(res.data);
     } catch (err) {
       console.error(err);
@@ -39,7 +40,8 @@ const AdminDashboard = () => {
 
   const fetchUsers = async (role) => {
     try {
-      const res = await axios.get(`${API_URL}/api/admin/users?role=${role}`, { headers: { Authorization: `Bearer ${token}` } });
+      const freshToken = localStorage.getItem('adminToken');
+      const res = await axios.get(`${API_URL}/api/admin/users?role=${role}`, { headers: { Authorization: `Bearer ${freshToken}` } });
       if (role === 'instructor') setInstructors(res.data);
       else setStudents(res.data);
     } catch (err) {
@@ -49,7 +51,8 @@ const AdminDashboard = () => {
 
   const fetchPendingInstructors = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/admin/users?role=pending_instructor`, { headers: { Authorization: `Bearer ${token}` } });
+      const freshToken = localStorage.getItem('adminToken');
+      const res = await axios.get(`${API_URL}/api/admin/users?role=pending_instructor`, { headers: { Authorization: `Bearer ${freshToken}` } });
       setPendingInstructors(res.data);
     } catch (err) {
       console.error(err);
@@ -58,7 +61,8 @@ const AdminDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/admin/stats`, { headers: { Authorization: `Bearer ${token}` } });
+      const freshToken = localStorage.getItem('adminToken');
+      const res = await axios.get(`${API_URL}/api/admin/stats`, { headers: { Authorization: `Bearer ${freshToken}` } });
       setStats(res.data);
     } catch (err) {
       console.error(err);
@@ -67,7 +71,8 @@ const AdminDashboard = () => {
 
   const approveUser = async (id) => {
     try {
-      await axios.post(`${API_URL}/api/admin/users/${id}/approve`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      const freshToken = localStorage.getItem('adminToken');
+      await axios.post(`${API_URL}/api/admin/users/${id}/approve`, {}, { headers: { Authorization: `Bearer ${freshToken}` } });
       fetchPendingInstructors();
       fetchUsers('instructor');
       fetchStats();
@@ -78,7 +83,8 @@ const AdminDashboard = () => {
 
   const rejectUser = async (id) => {
     try {
-      await axios.post(`${API_URL}/api/admin/users/${id}/reject`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      const freshToken = localStorage.getItem('adminToken');
+      await axios.post(`${API_URL}/api/admin/users/${id}/reject`, {}, { headers: { Authorization: `Bearer ${freshToken}` } });
       fetchPendingInstructors();
       fetchStats();
     } catch (err) {
@@ -93,7 +99,21 @@ const AdminDashboard = () => {
 
   const confirmDelete = async () => {
     try {
-      await axios.delete(`${API_URL}/api/admin/users/${deleteTarget.id}`, { headers: { Authorization: `Bearer ${token}` } });
+      // Get fresh token from localStorage each time
+      const freshToken = localStorage.getItem('adminToken');
+      console.log('🗑️ Deleting user:', deleteTarget.id);
+      console.log('🔑 Using admin token:', freshToken ? '✅ Present' : '❌ Missing');
+      
+      if (!freshToken) {
+        setModalMessage('Session expired. Please login again.');
+        setShowErrorModal(true);
+        return;
+      }
+      
+      await axios.delete(`${API_URL}/api/admin/users/${deleteTarget.id}`, { 
+        headers: { Authorization: `Bearer ${freshToken}` } 
+      });
+      console.log('✅ Delete successful');
       fetchUsers('instructor');
       fetchUsers('student');
       fetchStats();
@@ -102,15 +122,21 @@ const AdminDashboard = () => {
       setModalMessage(`${deleteTarget.username} has been deleted successfully.`);
       setShowSuccessModal(true);
     } catch (err) {
-      console.error(err);
-      setModalMessage('Failed to delete user');
+      console.error('❌ Full error object:', err);
+      console.error('❌ Error response data:', err.response?.data);
+      console.error('❌ Error status:', err.response?.status);
+      console.error('❌ Error message:', err.message);
+      
+      const errorMsg = err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to delete user';
+      setModalMessage(errorMsg);
       setShowErrorModal(true);
     }
   };
 
   const fetchAnnouncements = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/admin/announcements`, { headers: { Authorization: `Bearer ${token}` } });
+      const freshToken = localStorage.getItem('adminToken');
+      const res = await axios.get(`${API_URL}/api/admin/announcements`, { headers: { Authorization: `Bearer ${freshToken}` } });
       setAnnouncements(res.data);
     } catch (err) {
       console.error(err);
@@ -550,7 +576,7 @@ const AdminDashboard = () => {
         </Col>
       </Row>
 
-      {/* --- Delete Confirmation Modal ---
+      {/* --- Delete Confirmation Modal --- */}
       <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
         <Modal.Header closeButton style={{ backgroundColor: '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
           <Modal.Title style={{ color: '#2c3e50', fontWeight: 'bold' }}>

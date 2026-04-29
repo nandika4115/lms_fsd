@@ -1,13 +1,20 @@
 // server/config/db.js
 const { Pool } = require("pg");
 
+// Log connection details for debugging (password masked)
+const dbConfig = {
+  host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "postgres",        
+  password: process.env.DB_PASSWORD || "password",            
+  database: process.env.DB_NAME || "edu_platform",
+  port: process.env.DB_PORT || 5432,
+};
+
+console.log(`📍 PostgreSQL Config: host=${dbConfig.host}, user=${dbConfig.user}, db=${dbConfig.database}, port=${dbConfig.port}`);
+
 // Create a connection pool
 const pool = new Pool({
-  host: "localhost",
-  user: "postgres",        
-  password: "password",            
-  database: "edu_platform",
-  port: 5432,
+  ...dbConfig,
   max: 10,                // Reduced from 20
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
@@ -20,6 +27,9 @@ const pool = new Pool({
 pool.connect((err, client, release) => {
   if (err) {
     console.error("❌ PostgreSQL connection failed:", err.message);
+    if (err.message.includes('password')) {
+      console.error("⚠️  HINT: Check your DB_PASSWORD in .env file");
+    }
   } else {
     console.log("✅ Connected to edu_platform PostgreSQL database...");
     release(); 

@@ -3,8 +3,7 @@ import axios from "axios";
 import { Container, Form, Button, Row, Col, Alert } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-
-const API_URL = "http://localhost:5000";
+import API_URL from '../config';
 
 function Register() {
     const [formData, setFormData] = useState({

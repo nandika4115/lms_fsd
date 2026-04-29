@@ -36,7 +36,7 @@ exports.register = async (req, res) => {
 
     // Generate email verification token
     const verificationToken = generateVerificationToken();
-    const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const tokenExpires = new Date(Date.now() + 72 * 60 * 60 * 1000); // 72 hours (increased from 24)
 
     const query = `
         INSERT INTO users 
@@ -65,6 +65,14 @@ exports.register = async (req, res) => {
     try {
         const result = await db.query(query, values);
         const newUserId = result.rows[0]?.id;
+
+        console.log("📝 New user registered:", {
+            username,
+            email,
+            userId: newUserId,
+            verificationToken: verificationToken.substring(0, 20) + "...",
+            tokenExpires: tokenExpires
+        });
 
         // Send verification email (don't let email failure block registration)
         try {
@@ -104,17 +112,29 @@ exports.verifyEmail = async (req, res) => {
         return res.status(400).json({ message: "Verification token is required." });
     }
 
+    console.log("🔍 Verify Email - Token received (first 20 chars):", token.substring(0, 20));
+    console.log("🔍 Token length:", token.length);
+
     try {
         const result = await db.query(
-            'SELECT id, email_verified, verification_token_expires FROM users WHERE verification_token = $1',
+            'SELECT id, email, email_verified, verification_token_expires FROM users WHERE verification_token = $1',
             [token]
         );
 
+        console.log("🔍 Database query returned:", result.rows.length, "rows");
+
         if (result.rows.length === 0) {
+            console.log("❌ No user found with this token");
+            // Try to check if user exists at all with debug info
+            const allUsers = await db.query(
+                'SELECT id, email, verification_token FROM users WHERE email_verified = FALSE LIMIT 5'
+            );
+            console.log("🔍 Debug - Unverified users count:", allUsers.rows.length);
             return res.status(400).json({ message: "Invalid verification token." });
         }
 
         const user = result.rows[0];
+        console.log("✅ User found:", user.email, "- Email verified:", user.email_verified);
 
         if (user.email_verified) {
             return res.status(200).json({ message: "Email already verified. You can login." });
@@ -122,6 +142,7 @@ exports.verifyEmail = async (req, res) => {
 
         // Check if token has expired
         if (new Date() > new Date(user.verification_token_expires)) {
+            console.log("⏰ Token expired at:", user.verification_token_expires);
             return res.status(400).json({ message: "Verification link has expired. Please request a new one." });
         }
 
@@ -131,6 +152,7 @@ exports.verifyEmail = async (req, res) => {
             [user.id]
         );
 
+        console.log("✅ Email verified successfully for:", user.email);
         res.json({ message: "Email verified successfully! You can now login." });
 
     } catch (err) {
@@ -163,7 +185,7 @@ exports.resendVerification = async (req, res) => {
 
         // Generate new token
         const verificationToken = generateVerificationToken();
-        const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const tokenExpires = new Date(Date.now() + 72 * 60 * 60 * 1000); // 72 hours (increased from 24)
 
         await db.query(
             'UPDATE users SET verification_token = $1, verification_token_expires = $2 WHERE id = $3',

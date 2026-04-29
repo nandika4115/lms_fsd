@@ -45,7 +45,7 @@ const sendVerificationEmail = async (to, username, token) => {
                     </a>
                 </div>
                 <p style="color: #888; font-size: 13px; line-height: 1.5; margin: 24px 0 0;">
-                    This link expires in <strong>24 hours</strong>. If you didn't create an account, you can safely ignore this email.
+                    This link expires in <strong>72 hours</strong>. If you didn't create an account, you can safely ignore this email.
                 </p>
                 <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
                 <p style="color: #aaa; font-size: 12px; text-align: center;">

@@ -17,6 +17,7 @@ const certificateRoutes = require('./routes/certificateRoutes');
 const discussionRoutes = require('./routes/discussionRoutes');
 // Admin routes (MongoDB-backed)
 const adminRoutes = require('./routes/adminRoutes');
+const aiRoutes = require("./routes/aiRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,6 +37,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use("/api/ai", aiRoutes);
 
 // Health check endpoint (doesn't require DB)
 app.get('/api/health', (req, res) => {

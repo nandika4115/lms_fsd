@@ -397,6 +397,26 @@ const StudentDashboard = ({ data, userName }) => {
                  </Row>
              ) : <Alert variant="light">Enroll in a few courses to get personalized recommendations.</Alert>}
         </div>
+        <Card className="mt-5 shadow-sm">
+    <Card.Body>
+        <h3>AI Study Assistant</h3>
+
+        <textarea
+            rows="4"
+            className="form-control mb-3"
+            placeholder="Ask your doubt here..."
+        />
+
+        <Button variant="primary">
+            Ask AI
+        </Button>
+
+        <div className="mt-3">
+            <strong>AI Response:</strong>
+            <p>Response will appear here</p>
+        </div>
+    </Card.Body>
+</Card>
     </div>
     );
 };

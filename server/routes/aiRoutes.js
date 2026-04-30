@@ -3,10 +3,10 @@ const router = express.Router();
 
 const {
     studentChatbot,
-    instructorSummary,
+    testConnection,
 } = require("../controllers/aiController");
 
 router.post("/student-chat", studentChatbot);
-router.post("/instructor-summary", instructorSummary);
+router.get("/test", testConnection);
 
 module.exports = router;

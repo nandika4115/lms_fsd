@@ -428,76 +428,30 @@ const StudentDashboard = ({ data, userName }) => {
                  </Row>
              ) : <Alert variant="light">Enroll in a few courses to get personalized recommendations.</Alert>}
         </div>
-        {/* AI Study Assistant */}
+        {/* ================= AI CHATBOT ================= */}
 <div className="my-5">
-    <h2
-        className="mb-4 fw-bold"
-        style={{ color: "#2c3e50", fontSize: "1.8rem" }}
-    >
-        🤖 AI Study Assistant
-    </h2>
+    <h2>🤖 AI Chatbot</h2>
 
-    <Card
-        className="border-0 shadow-sm"
-        style={{
-            borderRadius: "16px",
-            background: "#ffffff",
-        }}
-    >
-        <Card.Body className="p-4">
-            <p className="text-muted">
-                Ask doubts related to your courses and get instant AI help.
-            </p>
+    <textarea
+        rows="3"
+        value={question}
+        onChange={(e) => setQuestion(e.target.value)}
+        style={{ width: "100%", marginBottom: "10px" }}
+    />
 
-            <textarea
-                rows="5"
-                className="form-control"
-                placeholder="Example: Explain React useEffect in simple terms"
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                style={{
-                    borderRadius: "12px",
-                    resize: "none",
-                }}
-            />
+    <button onClick={handleAskAI}>
+        Ask AI
+    </button>
 
-            <Button
-                variant="primary"
-                className="mt-3"
-                onClick={handleAskAI}
-                disabled={aiLoading}
-                style={{
-                    borderRadius: "10px",
-                    padding: "10px 20px",
-                    fontWeight: "bold",
-                }}
-            >
-                {aiLoading ? "Thinking..." : "Ask AI"}
-            </Button>
-
-            {aiReply && (
-                <Card
-                    className="mt-4 border-0"
-                    style={{
-                        background: "#f8f9fa",
-                        borderRadius: "12px",
-                    }}
-                >
-                    <Card.Body>
-                        <h5 className="fw-bold mb-3">
-                            AI Response
-                        </h5>
-                        <p style={{ whiteSpace: "pre-line" }}>
-                            {aiReply}
-                        </p>
-                    </Card.Body>
-                </Card>
-            )}
-        </Card.Body>
-    </Card>
+    {aiReply && (
+        <p style={{ marginTop: "10px" }}>
+            {aiReply}
+        </p>
+    )}
 </div>
-    </div>
-    );
+
+</div>
+);
 };
 // --- The Final, Enhanced Instructor Dashboard Component ---
 const InstructorDashboard = ({ data }) => {
@@ -505,46 +459,6 @@ const InstructorDashboard = ({ data }) => {
     const [showModal, setShowModal] = useState(false);
     const [modalType, setModalType] = useState('success'); // 'success' or 'error'
     const [modalMessage, setModalMessage] = useState('');
-    const [summary, setSummary] = useState("");
-const [summaryLoading, setSummaryLoading] = useState(false);
-
-const handleGenerateSummary = async () => {
-    try {
-        setSummaryLoading(true);
-
-        const token = localStorage.getItem("token");
-
-        // Example questions
-        // Later you can replace this with real DB questions
-        const sampleQuestions = [
-            "What is React state?",
-            "Difference between useEffect and useState?",
-            "How does JWT authentication work?",
-            "Why use MongoDB indexes?",
-            "How to connect frontend with backend?"
-        ];
-
-        const response = await axios.post(
-            `${API_URL}/api/ai/instructor-summary`,
-            {
-                questions: sampleQuestions,
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-
-        setSummary(response.data.summary);
-    } catch (error) {
-        console.error(error);
-        setSummary("Failed to generate summary.");
-    } finally {
-        setSummaryLoading(false);
-    }
-};
-
     useEffect(() => { setCourses(data); }, [data]);
 
     // Handler functions
@@ -781,61 +695,6 @@ const handleGenerateSummary = async () => {
                     </Card>
                 </Col>
             </Row>
-            {/* AI Question Summary */}
-<div className="mb-5">
-    <h2
-        className="mb-4 fw-bold"
-        style={{ color: "#2c3e50", fontSize: "1.8rem" }}
-    >
-        🤖 AI Question Summary
-    </h2>
-
-    <Card
-        className="border-0 shadow-sm"
-        style={{
-            borderRadius: "16px",
-            background: "#ffffff",
-        }}
-    >
-        <Card.Body className="p-4">
-            <p className="text-muted">
-                Generate a quick summary of common student doubts for faster replies.
-            </p>
-
-            <Button
-                variant="success"
-                onClick={handleGenerateSummary}
-                disabled={summaryLoading}
-                style={{
-                    borderRadius: "10px",
-                    padding: "10px 20px",
-                    fontWeight: "bold",
-                }}
-            >
-                {summaryLoading ? "Generating..." : "Generate Summary"}
-            </Button>
-
-            {summary && (
-                <Card
-                    className="mt-4 border-0"
-                    style={{
-                        background: "#f8f9fa",
-                        borderRadius: "12px",
-                    }}
-                >
-                    <Card.Body>
-                        <h5 className="fw-bold mb-3">
-                            Summary
-                        </h5>
-                        <p style={{ whiteSpace: "pre-line" }}>
-                            {summary}
-                        </p>
-                    </Card.Body>
-                </Card>
-            )}
-        </Card.Body>
-    </Card>
-</div>
             {/* --- Enhanced My Courses Section with Horizontal Layout --- */}
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h2 className="fw-bold" style={{ color: '#2c3e50', fontSize: '1.8rem' }}>

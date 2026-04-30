@@ -22,10 +22,18 @@
     "morgan": "^1.10.1",
     "mysql2": "^3.14.4",
     "nodemailer": "^8.0.5",
+<<<<<<< HEAD
     "pg": "^8.16.3",
     "qrcode": "^1.5.4",
     "speakeasy": "^2.0.0",
     "uuid": "^14.0.0"
+=======
+    "openai": "^6.35.0",
+    "pg": "^8.16.3",
+    "qrcode": "^1.5.4",
+    "speakeasy": "^2.0.0",
+    "uuid": "^13.0.0"
+>>>>>>> 1790724948956d9a2455ec56a67cfd4298ae7aba
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

@@ -428,30 +428,76 @@ const StudentDashboard = ({ data, userName }) => {
                  </Row>
              ) : <Alert variant="light">Enroll in a few courses to get personalized recommendations.</Alert>}
         </div>
-        {/* ================= AI CHATBOT ================= */}
+        {/* AI Study Assistant */}
 <div className="my-5">
-    <h2>🤖 AI Chatbot</h2>
+    <h2
+        className="mb-4 fw-bold"
+        style={{ color: "#2c3e50", fontSize: "1.8rem" }}
+    >
+        🤖 AI Study Assistant
+    </h2>
 
-    <textarea
-        rows="3"
-        value={question}
-        onChange={(e) => setQuestion(e.target.value)}
-        style={{ width: "100%", marginBottom: "10px" }}
-    />
+    <Card
+        className="border-0 shadow-sm"
+        style={{
+            borderRadius: "16px",
+            background: "#ffffff",
+        }}
+    >
+        <Card.Body className="p-4">
+            <p className="text-muted">
+                Ask doubts related to your courses and get instant AI help.
+            </p>
 
-    <button onClick={handleAskAI}>
-        Ask AI
-    </button>
+            <textarea
+                rows="5"
+                className="form-control"
+                placeholder="Example: Explain React useEffect in simple terms"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                style={{
+                    borderRadius: "12px",
+                    resize: "none",
+                }}
+            />
 
-    {aiReply && (
-        <p style={{ marginTop: "10px" }}>
-            {aiReply}
-        </p>
-    )}
+            <Button
+                variant="primary"
+                className="mt-3"
+                onClick={handleAskAI}
+                disabled={aiLoading}
+                style={{
+                    borderRadius: "10px",
+                    padding: "10px 20px",
+                    fontWeight: "bold",
+                }}
+            >
+                {aiLoading ? "Thinking..." : "Ask AI"}
+            </Button>
+
+            {aiReply && (
+                <Card
+                    className="mt-4 border-0"
+                    style={{
+                        background: "#f8f9fa",
+                        borderRadius: "12px",
+                    }}
+                >
+                    <Card.Body>
+                        <h5 className="fw-bold mb-3">
+                            AI Response
+                        </h5>
+                        <p style={{ whiteSpace: "pre-line" }}>
+                            {aiReply}
+                        </p>
+                    </Card.Body>
+                </Card>
+            )}
+        </Card.Body>
+    </Card>
 </div>
-
-</div>
-);
+    </div>
+    );
 };
 // --- The Final, Enhanced Instructor Dashboard Component ---
 const InstructorDashboard = ({ data }) => {

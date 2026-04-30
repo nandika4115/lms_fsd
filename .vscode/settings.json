@@ -1,0 +1,15 @@
+{
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/coverage": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/coverage": true
+  },
+  "problems.exclude": {
+    "**/node_modules/**": true,
+    "**/coverage/**": true,
+    "**/lcov-report/**": true
+  }
+}
